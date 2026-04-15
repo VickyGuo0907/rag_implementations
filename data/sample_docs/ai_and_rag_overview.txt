@@ -1,0 +1,118 @@
+Introduction to Artificial Intelligence and Large Language Models
+
+Artificial Intelligence (AI) has evolved dramatically over the past decade. Modern AI systems, particularly Large Language Models (LLMs), are trained on vast datasets and can perform a wide range of tasks including text generation, summarization, translation, and question answering.
+
+LLMs like GPT-4, Claude, and LLaMA are based on the transformer architecture, introduced in the seminal 2017 paper "Attention is All You Need" by Vaswani et al. The key innovation is the self-attention mechanism, which allows the model to weigh the relevance of different words in the input when generating each output token.
+
+Despite their impressive capabilities, LLMs have significant limitations:
+1. Knowledge cutoff: They are trained on static datasets and cannot access real-time information.
+2. Hallucination: They may generate plausible-sounding but factually incorrect information.
+3. Context window limits: They can only process a limited amount of text at once.
+4. Domain specificity: General-purpose models may lack depth in specialized domains.
+
+---
+
+Retrieval-Augmented Generation (RAG)
+
+RAG was introduced by Lewis et al. in 2020 in the paper "Retrieval-Augmented Generation for Knowledge-Intensive NLP Tasks." It addresses the key limitations of LLMs by combining them with external retrieval systems.
+
+The core idea of RAG is simple: rather than relying solely on the model's parametric knowledge (what it learned during training), the system retrieves relevant documents from an external knowledge base at inference time and provides them as context to the LLM.
+
+RAG System Components:
+
+1. Document Indexer: Processes raw documents by chunking them into manageable pieces, computing vector embeddings for each chunk, and storing them in a vector database.
+
+2. Vector Database: Stores document embeddings and enables fast approximate nearest-neighbor search. Popular options include ChromaDB, FAISS, Pinecone, Qdrant, and Weaviate.
+
+3. Retriever: Given a user query, computes its embedding and finds the most similar document chunks in the vector database. Returns the top-K most relevant chunks.
+
+4. Generator (LLM): Receives the user query along with the retrieved document chunks as context, and generates a grounded, accurate answer.
+
+---
+
+Types of RAG Systems
+
+Naive RAG: The simplest pipeline. Documents are chunked, embedded, and stored. At query time, the query is embedded and the top-K similar chunks are retrieved and passed to the LLM. Fast but limited in accuracy.
+
+Advanced RAG: Enhances Naive RAG with query rewriting (rephrasing queries for better retrieval), multi-query retrieval (generating multiple query variants), post-retrieval reranking (using a cross-encoder to reorder results), and contextual compression (filtering retrieved content).
+
+HyDE (Hypothetical Document Embeddings): Instead of embedding the raw query, the LLM generates a hypothetical answer document, which is then embedded and used for retrieval. This bridges the vocabulary gap between user queries and document content.
+
+RAG-Fusion: Generates multiple queries from the user's question, retrieves documents for each, and combines results using Reciprocal Rank Fusion (RRF) to produce more robust rankings.
+
+Parent Document Retrieval: Indexes small chunks for precise retrieval but returns their larger parent documents to provide sufficient context for generation.
+
+Self-RAG: The LLM itself decides whether retrieval is needed, evaluates the relevance of retrieved documents, and critiques its own generated output, iterating until a satisfactory answer is produced.
+
+Corrective RAG (CRAG): Automatically evaluates retrieval quality. If retrieved documents are deemed irrelevant, it rewrites the query and/or falls back to web search.
+
+GraphRAG: Extracts entities and relationships from documents to build a knowledge graph. Uses graph traversal alongside vector similarity to answer complex, multi-hop questions.
+
+RAPTOR: Recursively clusters documents, generates summaries of clusters, and builds a hierarchical tree. Enables queries at different levels of abstraction.
+
+Agentic RAG: Uses an LLM agent that autonomously decides when to retrieve, what to search for, and which tools to use. Supports multi-step reasoning workflows.
+
+---
+
+Embedding Models
+
+Embedding models convert text into numerical vector representations. The quality of embeddings directly impacts RAG system performance. Modern embedding models include:
+
+- OpenAI text-embedding-3-large: High-quality, cloud-based
+- nomic-embed-text-v1.5: Strong open-source model, runs locally via LMStudio
+- BAAI/bge-large-en-v1.5: Excellent for English text, runs locally
+- sentence-transformers/all-MiniLM-L6-v2: Lightweight, fast, good for prototyping
+
+When choosing embedding models, consider: embedding dimension, inference speed, memory requirements, and similarity to your domain's vocabulary.
+
+---
+
+Vector Databases
+
+Vector databases are specialized storage systems optimized for high-dimensional vector similarity search. Key considerations:
+
+ChromaDB: Simple, open-source, good for development and small-to-medium scale (< 1M vectors). Embedded mode requires no separate server.
+
+FAISS (Facebook AI Similarity Search): Extremely fast, supports various index types (Flat, IVF, HNSW). In-memory only, requires serialization for persistence. Best for high-throughput scenarios.
+
+Qdrant: Production-ready, supports filtering on metadata, good horizontal scaling. REST and gRPC API. Recommended for production deployments.
+
+Pinecone: Fully managed cloud service. Zero infrastructure management but vendor lock-in and cost at scale.
+
+Weaviate: Supports hybrid search (vector + keyword), has built-in ML modules, strong GraphQL API.
+
+---
+
+Evaluation Metrics for RAG Systems
+
+Evaluating RAG systems requires measuring both retrieval quality and generation quality:
+
+RAGAS Metrics:
+- Faithfulness: Is the generated answer factually consistent with the retrieved context? (0-1, higher is better)
+- Answer Relevancy: Is the answer relevant and complete given the question? (0-1)
+- Context Recall: What proportion of the necessary information was retrieved? (0-1, requires ground truth)
+- Context Precision: What proportion of retrieved context is actually relevant? (0-1)
+
+Other Evaluation Approaches:
+- BLEU/ROUGE: Token-overlap metrics, useful for comparing to reference answers
+- Human evaluation: Most reliable but expensive and slow
+- LLM-as-judge: Use a powerful LLM to score answers on various criteria
+- End-to-end accuracy: Binary correct/incorrect on factual questions with known answers
+
+---
+
+Best Practices for Production RAG Systems
+
+1. Start with Naive RAG as your baseline. Measure its performance before adding complexity.
+
+2. Invest in data quality. Clean, well-structured documents with good metadata will improve retrieval more than any algorithm change.
+
+3. Choose chunk sizes thoughtfully. 256-512 tokens works well for most use cases. Smaller chunks = more precise retrieval. Larger chunks = more context per retrieval.
+
+4. Use a production vector store. ChromaDB is great for development; migrate to Qdrant or Weaviate for production.
+
+5. Implement evaluation early. Set up RAGAS or a similar evaluation framework before building, so you can measure the impact of each improvement.
+
+6. Monitor retrieval quality separately from generation quality. A retrieval problem requires different fixes than a generation problem.
+
+7. Consider query intent. Not all queries benefit from retrieval. Adaptive RAG can route simple factual questions to direct LLM answers, saving latency and cost.

@@ -1,0 +1,362 @@
+# =============================================================================
+# RAG Technique Summary - Master Configuration
+# =============================================================================
+# All settings for LMStudio, embeddings, vector stores, and RAG techniques
+# are centralized here. Edit this file to configure your environment.
+# Reference: https://github.com/NirDiamant/RAG_Techniques
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# LMStudio LLM Configuration
+# LMStudio exposes an OpenAI-compatible API at localhost:1234
+# -----------------------------------------------------------------------------
+lmstudio:
+  base_url: "http://localhost:1234/v1"
+  api_key: "lm-studio"              # LMStudio placeholder key
+  model: "qwen/qwen3.5-35b-a3b"    # Change to your loaded model name
+  temperature: 0.1
+  max_tokens: 2048
+  timeout: 120
+  streaming: false
+
+# Small/fast model for reflection steps (Self-RAG, CRAG, Adaptive)
+lmstudio_small:
+  base_url: "http://localhost:1234/v1"
+  api_key: "lm-studio"
+  model: "llama-3.1-8b-instruct"    # Use same or smaller model
+  temperature: 0.0
+  max_tokens: 512
+  timeout: 60
+
+# -----------------------------------------------------------------------------
+# Embedding Model Configuration
+# LMStudio also serves embedding models via the same API
+# -----------------------------------------------------------------------------
+embeddings:
+  provider: "huggingface"           # Options: lmstudio, huggingface, sentence_transformers
+  model: "nomic-embed-text-v1.5"    # (ignored for HuggingFace provider)
+  base_url: "http://localhost:1234/v1"
+  api_key: "lm-studio"
+  dimension: 768
+  batch_size: 32
+
+  # Local HuggingFace embeddings (no server required, Python 3.14 compatible)
+  huggingface_fallback:
+    model: "sentence-transformers/all-MiniLM-L6-v2"
+    device: "cpu"                   # Options: cpu, cuda, mps
+
+# -----------------------------------------------------------------------------
+# Vector Store Configuration
+# -----------------------------------------------------------------------------
+vector_store:
+  provider: "chroma"                # Options: chroma, faiss, qdrant
+  persist_directory: "./data/vector_store"
+  collection_name: "rag_documents"
+
+  # ChromaDB settings
+  chroma:
+    host: "localhost"
+    port: 8000
+    use_persistent: true
+
+  # FAISS settings
+  faiss:
+    index_type: "Flat"             # Options: Flat, IVFFlat, HNSW
+    save_path: "./data/faiss_index"
+
+  # Qdrant settings (if using remote Qdrant)
+  qdrant:
+    url: "http://localhost:6333"
+    api_key: null
+
+# -----------------------------------------------------------------------------
+# Document Processing Configuration
+# -----------------------------------------------------------------------------
+document:
+  chunk_size: 512
+  chunk_overlap: 50
+  chunk_strategy: "recursive"       # Options: recursive, sentence, semantic, proposition
+  min_chunk_size: 100
+  separators: ["\n\n", "\n", " ", ""]
+
+  # Semantic chunking settings (for 08_semantic_chunking)
+  semantic:
+    breakpoint_threshold_type: "percentile"
+    breakpoint_threshold_amount: 95
+
+  # Proposition chunking settings
+  proposition:
+    generate_propositions: true
+    proposition_prompt: "decompose_to_atomic_facts"
+
+# -----------------------------------------------------------------------------
+# Retrieval Configuration
+# -----------------------------------------------------------------------------
+retrieval:
+  top_k: 5
+  score_threshold: 0.3
+  rerank_top_k: 3
+  search_type: "similarity"         # Options: similarity, mmr, similarity_score_threshold
+
+  # MMR (Maximum Marginal Relevance) settings
+  mmr:
+    fetch_k: 20
+    lambda_mult: 0.5
+
+# -----------------------------------------------------------------------------
+# Logging & Output
+# -----------------------------------------------------------------------------
+logging:
+  level: "INFO"                     # Options: DEBUG, INFO, WARNING, ERROR
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  log_file: "./logs/rag_system.log"
+  console: true
+
+output:
+  results_dir: "./results"
+  save_results: true
+  format: "json"                    # Options: json, csv, markdown
+
+# -----------------------------------------------------------------------------
+# Evaluation Configuration (RAGAS)
+# -----------------------------------------------------------------------------
+evaluation:
+  enabled: true
+  framework: "ragas"
+  batch_size: 10
+  output_dir: "./evaluation_results"
+
+  metrics:
+    faithfulness: true              # Is the answer grounded in the context?
+    answer_relevancy: true          # Is the answer relevant to the question?
+    context_recall: true            # Are relevant docs retrieved?
+    context_precision: true         # Are retrieved docs precise?
+    context_relevancy: true
+    answer_correctness: false       # Requires ground truth
+
+  # Test dataset for evaluation
+  test_data:
+    path: "./data/eval/test_questions.json"
+    num_samples: 20
+
+# =============================================================================
+# RAG Technique-Specific Configurations
+# =============================================================================
+
+rag_techniques:
+
+  # ---------------------------------------------------------------------------
+  # 01. Naive RAG - Baseline pipeline
+  # ---------------------------------------------------------------------------
+  naive_rag:
+    enabled: true
+    description: "Basic chunk → embed → retrieve → generate pipeline"
+    use_cases:
+      - "Prototyping and baseline testing"
+      - "Simple Q&A over small document sets"
+      - "Low-latency requirements"
+
+  # ---------------------------------------------------------------------------
+  # 02. Advanced RAG - Pre/post retrieval enhancements
+  # ---------------------------------------------------------------------------
+  advanced_rag:
+    enabled: true
+    description: "Query rewriting + retrieval + reranking + compression"
+    query_rewriting: true
+    reranking: true
+    compression: true
+    use_cases:
+      - "Production Q&A systems"
+      - "Complex multi-document retrieval"
+      - "High accuracy requirements"
+
+  # ---------------------------------------------------------------------------
+  # 03. HyDE RAG - Hypothetical Document Embeddings
+  # ---------------------------------------------------------------------------
+  hyde_rag:
+    enabled: true
+    description: "Generate hypothetical answer, use it as retrieval query"
+    num_hypothetical_docs: 3
+    use_cases:
+      - "When query phrasing differs from document style"
+      - "Technical documentation retrieval"
+      - "Cross-domain search"
+
+  # ---------------------------------------------------------------------------
+  # 04. Query Transform RAG - Multi-strategy query enhancement
+  # ---------------------------------------------------------------------------
+  query_transform_rag:
+    enabled: true
+    description: "Step-back, decomposition, and multi-query transformation"
+    strategies:
+      - step_back             # Abstract the query to a higher level
+      - decompose             # Break complex query into sub-questions
+      - multi_query           # Generate N query variations
+    num_queries: 3
+    use_cases:
+      - "Complex multi-hop questions"
+      - "Ambiguous or vague queries"
+      - "Improving recall"
+
+  # ---------------------------------------------------------------------------
+  # 05. Fusion RAG - RAG-Fusion with Reciprocal Rank Fusion
+  # ---------------------------------------------------------------------------
+  fusion_rag:
+    enabled: true
+    description: "Multi-query generation + hybrid search + RRF ranking"
+    num_queries: 4
+    rrf_k: 60                 # Reciprocal Rank Fusion constant
+    hybrid_search: true       # Combine dense + sparse (BM25) retrieval
+    use_cases:
+      - "When single retrieval misses relevant docs"
+      - "Diverse document sets"
+      - "Production search systems"
+
+  # ---------------------------------------------------------------------------
+  # 06. Parent Document RAG - Hierarchical chunk retrieval
+  # ---------------------------------------------------------------------------
+  parent_document_rag:
+    enabled: true
+    description: "Retrieve small chunks, return large parent for context"
+    parent_chunk_size: 2000
+    child_chunk_size: 200
+    use_cases:
+      - "Long documents needing precise retrieval"
+      - "When context window is limited"
+      - "Technical manuals, books, reports"
+
+  # ---------------------------------------------------------------------------
+  # 07. Reranking RAG - Cross-encoder reranking
+  # ---------------------------------------------------------------------------
+  reranking_rag:
+    enabled: true
+    description: "Retrieve N docs, rerank with cross-encoder, return top K"
+    initial_top_k: 20
+    rerank_top_k: 5
+    reranker_model: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    use_cases:
+      - "High precision requirements"
+      - "When vector similarity alone is insufficient"
+      - "Legal, medical, compliance domains"
+
+  # ---------------------------------------------------------------------------
+  # 08. Self-RAG - Self-reflective retrieval and generation
+  # ---------------------------------------------------------------------------
+  self_rag:
+    enabled: true
+    description: "Decide if retrieval needed, assess relevance, critique output"
+    max_iterations: 3
+    retrieve_token_threshold: 0.5   # Threshold to trigger retrieval
+    relevance_threshold: 0.6        # Threshold for doc relevance
+    support_threshold: 0.7          # Threshold for answer support
+    use_cases:
+      - "When retrieval overhead should be minimized"
+      - "Mixed fact-based and reasoning questions"
+      - "Reducing hallucinations"
+
+  # ---------------------------------------------------------------------------
+  # 09. Corrective RAG (CRAG) - Quality-aware retrieval correction
+  # ---------------------------------------------------------------------------
+  corrective_rag:
+    enabled: true
+    description: "Evaluate retrieval quality, correct or supplement if poor"
+    relevance_threshold: 0.7
+    web_search_fallback: false      # Set true + add Tavily API key for web fallback
+    tavily_api_key: null            # Add your Tavily API key here if using web search
+    use_cases:
+      - "When knowledge base may be incomplete"
+      - "High-stakes factual retrieval"
+      - "Time-sensitive information"
+
+  # ---------------------------------------------------------------------------
+  # 10. Adaptive RAG - Dynamic strategy routing
+  # ---------------------------------------------------------------------------
+  adaptive_rag:
+    enabled: true
+    description: "Classify query complexity, route to optimal RAG strategy"
+    strategies:
+      simple: "no_retrieval"        # For factual/common knowledge
+      moderate: "naive_rag"         # For standard retrieval
+      complex: "fusion_rag"         # For multi-hop queries
+    routing_model: "classifier"     # Options: classifier, llm_router, embedding_router
+    use_cases:
+      - "Diverse query types"
+      - "Cost optimization (skip retrieval when not needed)"
+      - "Production systems with mixed workloads"
+
+  # ---------------------------------------------------------------------------
+  # 11. GraphRAG - Knowledge graph enhanced retrieval
+  # ---------------------------------------------------------------------------
+  graph_rag:
+    enabled: true
+    description: "Extract entities/relations, build graph, query with traversal"
+    graph_store: "networkx"         # Options: networkx, neo4j
+    entity_types:
+      - PERSON
+      - ORGANIZATION
+      - LOCATION
+      - CONCEPT
+      - EVENT
+      - TECHNOLOGY
+    community_detection: true
+    community_algorithm: "louvain"
+    neo4j:                          # Only if graph_store = neo4j
+      uri: "bolt://localhost:7687"
+      username: "neo4j"
+      password: "password"
+    use_cases:
+      - "Entity-rich documents (reports, research papers)"
+      - "Multi-hop relationship queries"
+      - "Knowledge base construction"
+
+  # ---------------------------------------------------------------------------
+  # 12. RAPTOR - Recursive Abstractive Processing for Tree-Organized Retrieval
+  # ---------------------------------------------------------------------------
+  raptor_rag:
+    enabled: true
+    description: "Cluster docs → summarize clusters → build tree → query at depth"
+    max_depth: 3
+    cluster_size_min: 2
+    cluster_size_max: 10
+    summary_chunk_size: 1000
+    clustering_algorithm: "gmm"     # Gaussian Mixture Model
+    dimensionality_reduction: "umap"
+    use_cases:
+      - "Large document corpora"
+      - "Multi-level abstraction queries (detail vs. summary)"
+      - "Research literature, documentation sets"
+
+  # ---------------------------------------------------------------------------
+  # 13. Agentic RAG - LLM agent with retrieval tools
+  # ---------------------------------------------------------------------------
+  agentic_rag:
+    enabled: true
+    description: "LLM agent decides when/what to retrieve, uses multiple tools"
+    max_iterations: 5
+    agent_type: "react"             # Options: react, openai_functions, plan_and_execute
+    tools:
+      - vector_retrieval            # Always included
+      - web_search                  # Requires API key
+      - calculator                  # Math operations
+      - code_executor               # Run Python code
+    use_cases:
+      - "Complex multi-step reasoning"
+      - "Research assistant"
+      - "When multiple data sources are needed"
+
+  # ---------------------------------------------------------------------------
+  # 14. Multi-modal RAG - Text + image + table retrieval
+  # ---------------------------------------------------------------------------
+  multimodal_rag:
+    enabled: true
+    description: "Process images/tables alongside text, retrieve cross-modally"
+    supported_modalities:
+      - text
+      - image
+      - table
+    image_captioning: true
+    table_extraction: true
+    use_cases:
+      - "PDF documents with charts/figures"
+      - "Scientific papers"
+      - "Product catalogs"

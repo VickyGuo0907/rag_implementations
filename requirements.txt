@@ -1,0 +1,95 @@
+# =============================================================================
+# RAG Technique Summary — Python Dependencies
+# =============================================================================
+# Core dependencies for LangChain-based implementations
+# Install: pip install -r requirements.txt
+#
+# Python >= 3.10 recommended
+# LMStudio: https://lmstudio.ai (run separately as local LLM server)
+# =============================================================================
+
+# ---------------------------------------------------------------------------
+# LangChain Core
+# ---------------------------------------------------------------------------
+langchain>=0.3.0
+langchain-core>=0.3.0
+langchain-community>=0.3.0
+langchain-openai>=0.2.0          # For LMStudio (OpenAI-compatible API)
+langchain-text-splitters>=0.3.0
+langchain-chroma>=0.1.0
+langchain-huggingface>=0.1.0
+
+# ---------------------------------------------------------------------------
+# LlamaIndex Core
+# ---------------------------------------------------------------------------
+llama-index>=0.11.0
+llama-index-core>=0.11.0
+llama-index-llms-openai>=0.3.0   # For LMStudio
+llama-index-embeddings-openai>=0.3.0
+llama-index-embeddings-huggingface>=0.3.0
+llama-index-vector-stores-chroma>=0.2.0
+
+# ---------------------------------------------------------------------------
+# Vector Stores
+# ---------------------------------------------------------------------------
+chromadb>=0.5.0                   # Default vector store
+faiss-cpu>=1.8.0                  # Alternative: pip install faiss-gpu for GPU
+
+# ---------------------------------------------------------------------------
+# Embedding Models (local / HuggingFace)
+# ---------------------------------------------------------------------------
+sentence-transformers>=3.0.0
+transformers>=4.40.0
+torch>=2.0.0                      # CPU-only: pip install torch --index-url https://download.pytorch.org/whl/cpu
+
+# ---------------------------------------------------------------------------
+# Cross-Encoder Reranking (Advanced RAG, Reranking RAG)
+# ---------------------------------------------------------------------------
+# sentence-transformers already included above
+
+# ---------------------------------------------------------------------------
+# Configuration & Utilities
+# ---------------------------------------------------------------------------
+pyyaml>=6.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+tqdm>=4.66.0
+numpy>=1.26.0
+pandas>=2.0.0
+
+# ---------------------------------------------------------------------------
+# Evaluation (RAGAS)
+# ---------------------------------------------------------------------------
+ragas>=0.1.0
+datasets>=2.18.0
+
+# ---------------------------------------------------------------------------
+# GraphRAG (technique 11)
+# ---------------------------------------------------------------------------
+networkx>=3.0                     # Local graph storage
+# neo4j>=5.0.0                    # Optional: uncomment for Neo4j backend
+
+# ---------------------------------------------------------------------------
+# RAPTOR (technique 12)
+# ---------------------------------------------------------------------------
+scikit-learn>=1.4.0               # GMM clustering
+umap-learn>=0.5.0                 # Dimensionality reduction
+
+# ---------------------------------------------------------------------------
+# Agentic RAG (technique 13)
+# ---------------------------------------------------------------------------
+# tavily-python>=0.3.0            # Optional: web search fallback (needs API key)
+
+# ---------------------------------------------------------------------------
+# Multi-modal RAG (technique 14)
+# ---------------------------------------------------------------------------
+pillow>=10.0.0
+# pytesseract>=0.3.0              # Optional: OCR for image text extraction
+# pdf2image>=1.16.0               # Optional: PDF image extraction
+
+# ---------------------------------------------------------------------------
+# Logging & Development
+# ---------------------------------------------------------------------------
+rich>=13.0.0                      # Beautiful terminal output
+loguru>=0.7.0                     # Better logging
+ipykernel>=6.0.0                  # Jupyter notebook support

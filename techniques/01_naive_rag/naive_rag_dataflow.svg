@@ -1,0 +1,144 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800">
+  <defs>
+    <style>
+      text { font-family: "Monaco", "Menlo", monospace; }
+      .label { font-size: 13px; fill: #e0e0e0; }
+      .title { font-size: 18px; font-weight: bold; fill: #94d5ff; }
+      .subtitle { font-size: 12px; fill: #888; }
+    </style>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#3b82f6"/>
+    </marker>
+    <marker id="arrow-purple" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#a78bfa"/>
+    </marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+    </marker>
+    <marker id="arrow-green-dashed" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#34d399"/>
+    </marker>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  <rect width="1200" height="800" fill="#0a1628"/>
+  <line x1="0" y1="0" x2="0" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="60" y1="0" x2="60" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="120" y1="0" x2="120" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="180" y1="0" x2="180" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="240" y1="0" x2="240" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="300" y1="0" x2="300" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="360" y1="0" x2="360" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="420" y1="0" x2="420" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="480" y1="0" x2="480" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="540" y1="0" x2="540" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="600" y1="0" x2="600" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="660" y1="0" x2="660" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="720" y1="0" x2="720" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="780" y1="0" x2="780" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="840" y1="0" x2="840" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="900" y1="0" x2="900" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="960" y1="0" x2="960" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="1020" y1="0" x2="1020" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="1080" y1="0" x2="1080" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="1140" y1="0" x2="1140" y2="800" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="0" x2="1200" y2="0" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="60" x2="1200" y2="60" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="120" x2="1200" y2="120" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="180" x2="1200" y2="180" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="240" x2="1200" y2="240" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="300" x2="1200" y2="300" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="360" x2="1200" y2="360" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="420" x2="1200" y2="420" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="480" x2="1200" y2="480" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="540" x2="1200" y2="540" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="600" x2="1200" y2="600" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="660" x2="1200" y2="660" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="720" x2="1200" y2="720" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <line x1="0" y1="780" x2="1200" y2="780" stroke="#1e3a5f" stroke-width="0.5" opacity="0.3"/>
+  <text x="600" y="40" text-anchor="middle" class="title">Naive RAG Data Flow</text>
+  <text x="600" y="60" text-anchor="middle" class="subtitle">Documents → Chunks → Embeddings → Vector Store → Query Processing → Response</text>
+  <!-- Indexing Pipeline -->
+  <text x="50" y="110" class="label" style="font-weight: bold; fill: #94d5ff">INDEX TIME (Offline)</text>
+  <rect x="80" y="130" width="140" height="80" rx="6" fill="none" stroke="#94d5ff" stroke-width="2"/>
+  <text x="150" y="165" text-anchor="middle" class="label">Documents</text>
+  <text x="150" y="182" text-anchor="middle" class="subtitle" style="font-size: 11px;">PDF, TXT, etc.</text>
+  <path d="M 220 170 L 290 170" stroke="#3b82f6" stroke-width="2.5" fill="none" marker-end="url(#arrow-blue)"/>
+  <rect x="235" y="160" width="60" height="20" fill="#0a1628" opacity="0.95"/>
+  <text x="265" y="173" text-anchor="middle" class="label" style="font-size: 11px;">raw text</text>
+  <rect x="290" y="130" width="140" height="80" rx="6" fill="none" stroke="#a78bfa" stroke-width="2"/>
+  <text x="360" y="165" text-anchor="middle" class="label">TextSplitter</text>
+  <text x="360" y="182" text-anchor="middle" class="subtitle" style="font-size: 11px;">Chunk</text>
+  <path d="M 430 170 L 500 170" stroke="#a78bfa" stroke-width="2.5" fill="none" marker-end="url(#arrow-purple)"/>
+  <rect x="445" y="160" width="50" height="20" fill="#0a1628" opacity="0.95"/>
+  <text x="470" y="173" text-anchor="middle" class="label" style="font-size: 11px;">chunks</text>
+  <rect x="500" y="130" width="140" height="80" rx="6" fill="none" stroke="#a78bfa" stroke-width="2"/>
+  <text x="570" y="165" text-anchor="middle" class="label">Embeddings</text>
+  <text x="570" y="182" text-anchor="middle" class="subtitle" style="font-size: 11px;">HuggingFace</text>
+  <path d="M 640 170 L 710 170" stroke="#34d399" stroke-width="2.5" fill="none" marker-end="url(#arrow-green)"/>
+  <rect x="660" y="160" width="50" height="20" fill="#0a1628" opacity="0.95"/>
+  <text x="685" y="173" text-anchor="middle" class="label" style="font-size: 11px;">vectors</text>
+  <rect x="710" y="130" width="140" height="60" rx="4" fill="none" stroke="#34d399" stroke-width="2.5"/>
+  <ellipse cx="780" cy="130" rx="70" ry="12" fill="none" stroke="#34d399" stroke-width="2.5"/>
+  <text x="780" y="165" text-anchor="middle" class="label">ChromaDB</text>
+  <text x="780" y="182" text-anchor="middle" class="subtitle" style="font-size: 11px;">Vector Store</text>
+  <!-- Query Pipeline -->
+  <text x="50" y="320" class="label" style="font-weight: bold; fill: #94d5ff">QUERY TIME (Online)</text>
+  <rect x="80" y="340" width="140" height="80" rx="6" fill="none" stroke="#94d5ff" stroke-width="2"/>
+  <text x="150" y="375" text-anchor="middle" class="label">User Query</text>
+  <text x="150" y="392" text-anchor="middle" class="subtitle" style="font-size: 11px;">Natural Language</text>
+  <path d="M 220 380 L 290 380" stroke="#3b82f6" stroke-width="2.5" fill="none" marker-end="url(#arrow-blue)"/>
+  <rect x="235" y="370" width="50" height="20" fill="#0a1628" opacity="0.95"/>
+  <text x="260" y="383" text-anchor="middle" class="label" style="font-size: 11px;">query</text>
+  <rect x="290" y="340" width="140" height="80" rx="6" fill="none" stroke="#a78bfa" stroke-width="2"/>
+  <text x="360" y="375" text-anchor="middle" class="label">Embed Query</text>
+  <text x="360" y="392" text-anchor="middle" class="subtitle" style="font-size: 11px;">Same Model</text>
+  <path d="M 430 380 L 500 380" stroke="#a78bfa" stroke-width="2.5" fill="none" marker-end="url(#arrow-purple)"/>
+  <rect x="450" y="370" width="50" height="20" fill="#0a1628" opacity="0.95"/>
+  <text x="475" y="383" text-anchor="middle" class="label" style="font-size: 11px;">embedding</text>
+  <rect x="500" y="340" width="140" height="80" rx="6" fill="none" stroke="#34d399" stroke-width="2"/>
+  <text x="570" y="375" text-anchor="middle" class="label">Retrieve top-K</text>
+  <text x="570" y="392" text-anchor="middle" class="subtitle" style="font-size: 11px;">Similarity Search</text>
+  <path d="M 780 190 Q 780 260, 600 340" stroke="#34d399" stroke-width="2" stroke-dasharray="5,3" fill="none" marker-end="url(#arrow-green-dashed)"/>
+  <rect x="700" y="260" width="80" height="20" fill="#0a1628" opacity="0.95"/>
+  <text x="740" y="273" text-anchor="middle" class="label" style="font-size: 11px;">vector search</text>
+  <path d="M 640 380 L 710 380" stroke="#34d399" stroke-width="2.5" fill="none" marker-end="url(#arrow-green)"/>
+  <rect x="655" y="370" width="50" height="20" fill="#0a1628" opacity="0.95"/>
+  <text x="680" y="383" text-anchor="middle" class="label" style="font-size: 11px;">chunks</text>
+  <rect x="710" y="340" width="140" height="80" rx="6" fill="none" stroke="#a78bfa" stroke-width="2"/>
+  <text x="780" y="375" text-anchor="middle" class="label">Build Prompt</text>
+  <text x="780" y="392" text-anchor="middle" class="subtitle" style="font-size: 11px;">Augment Query</text>
+  <path d="M 850 380 L 920 380" stroke="#a78bfa" stroke-width="2.5" fill="none" marker-end="url(#arrow-purple)"/>
+  <rect x="870" y="370" width="50" height="20" fill="#0a1628" opacity="0.95"/>
+  <text x="895" y="383" text-anchor="middle" class="label" style="font-size: 11px;">prompt</text>
+  <rect x="920" y="340" width="140" height="80" rx="6" fill="none" stroke="#94d5ff" stroke-width="2.5" filter="url(#glow)"/>
+  <text x="990" y="375" text-anchor="middle" class="label" style="fill: #94d5ff; font-weight: bold;">LLM</text>
+  <text x="990" y="392" text-anchor="middle" class="subtitle" style="font-size: 11px;">LMStudio</text>
+  <path d="M 1060 380 L 1120 380" stroke="#3b82f6" stroke-width="2.5" fill="none" marker-end="url(#arrow-blue)"/>
+  <rect x="1070" y="370" width="50" height="20" fill="#0a1628" opacity="0.95"/>
+  <text x="1095" y="383" text-anchor="middle" class="label" style="font-size: 11px;">answer</text>
+  <rect x="1120" y="340" width="60" height="80" rx="6" fill="none" stroke="#94d5ff" stroke-width="2"/>
+  <text x="1150" y="382" text-anchor="middle" class="label">Answer</text>
+  <!-- Legend -->
+  <text x="50" y="540" class="label" style="font-weight: bold; fill: #94d5ff">Legend</text>
+  <line x1="50" y1="570" x2="100" y2="570" stroke="#3b82f6" stroke-width="2.5" marker-end="url(#arrow-blue)"/>
+  <text x="120" y="575" class="label">Primary Data Flow (blue)</text>
+  <line x1="50" y1="600" x2="100" y2="600" stroke="#a78bfa" stroke-width="2.5" marker-end="url(#arrow-purple)"/>
+  <text x="120" y="605" class="label">Data Transformation (purple)</text>
+  <line x1="50" y1="630" x2="100" y2="630" stroke="#34d399" stroke-width="2.5" marker-end="url(#arrow-green)"/>
+  <text x="120" y="635" class="label">Memory Read/Write (green)</text>
+  <line x1="50" y1="660" x2="100" y2="660" stroke="#34d399" stroke-width="2" stroke-dasharray="5,3" marker-end="url(#arrow-green-dashed)"/>
+  <text x="120" y="665" class="label">Vector Search (dashed)</text>
+  <!-- Key Metrics -->
+  <text x="50" y="720" class="label" style="font-weight: bold; fill: #94d5ff">Data Flow Summary</text>
+  <text x="50" y="745" class="label">• Index: Documents → (Split) → (Embed) → ChromaDB</text>
+  <text x="50" y="765" class="label">• Query: User Input → (Embed) → (Search) → (Augment) → LLM → Answer</text>
+  <text x="580" y="745" class="label">• Embedding Model: sentence-transformers/all-MiniLM-L6-v2</text>
+  <text x="580" y="765" class="label">• LLM: LMStudio (Qwen 35B) | Vector Store: ChromaDB | Retrieval: Similarity Search (k=5)</text>
+</svg>

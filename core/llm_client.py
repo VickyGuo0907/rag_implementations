@@ -54,10 +54,11 @@ def get_llamaindex_llm(config_key: str = "lmstudio"):
     cfg = ConfigLoader.get()
     lm_cfg = cfg[config_key]
 
+    # Use gpt-3.5-turbo as placeholder; actual model is determined by LMStudio server
     return OpenAI(
         api_base=lm_cfg["base_url"],
         api_key=lm_cfg["api_key"],
-        model=lm_cfg["model"],
+        model="gpt-3.5-turbo",
         temperature=lm_cfg.get("temperature", 0.1),
         max_tokens=lm_cfg.get("max_tokens", 2048),
         timeout=lm_cfg.get("timeout", 120),

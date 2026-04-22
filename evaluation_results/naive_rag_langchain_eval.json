@@ -1,0 +1,22 @@
+{
+  "technique": "naive_rag",
+  "framework": "langchain",
+  "num_samples": 3,
+  "scores": {
+    "answer_coverage": 1.0,
+    "context_coverage": 1.0,
+    "avg_answer_words": 0.19
+  },
+  "metadata": {
+    "questions": [
+      "What is RAG?",
+      "What are the main components of RAG?",
+      "How does Advanced RAG differ from Naive RAG?"
+    ],
+    "answers": [
+      "\n\nI don't have enough information to answer this question.",
+      "\n\nBased on the provided context, one of the main components of RAG is the **Document Indexer**. It processes raw documents by chunking them into manageable pieces, computing vector embeddings for each chunk, and storing them in a vector database.",
+      "\n\nI don't have enough information to answer this question."
+    ]
+  }
+}

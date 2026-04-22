@@ -112,7 +112,7 @@ retrieval:
 from techniques.naive_rag.langchain_impl import NaiveRAGLangChain
 from core.config_loader import ConfigLoader
 
-rag = NaiveRAGLangChain(config=ConfigLoader.get()._config)
+rag = NaiveRAGLangChain(config=ConfigLoader.get())
 rag.index(["Your document text here...", "Another document..."])
 result = rag.query("What is the main topic?")
 result.print_summary()
@@ -127,5 +127,18 @@ result.print_summary()
 - **ChromaDB is fine for < 100K documents.** Beyond that, consider FAISS (for speed) or Qdrant (for production scalability).
 - **This should always be your first implementation** — it gives you the performance floor that all advanced techniques must beat to justify their added complexity.
 
-## Data flow Diagram 
-![Native RAG Diagram](naive_rag_dataflow.png)
+## Data Flow Diagram
+
+The complete Naive RAG pipeline consists of two phases:
+
+### Offline Phase (Indexing)
+**Documents → Chunks → Embeddings → Vector Store**
+
+Raw documents are preprocessed once and stored for efficient retrieval. This phase happens when you first ingest your knowledge base.
+
+### Online Phase (Query) 
+**Query → Embedding → Similarity Search → Context Retrieval → LLM → Response**
+
+When a user asks a question, it's embedded and compared against the vector store. The top-K most similar chunks are retrieved and injected into the LLM prompt to generate a context-aware answer.
+
+![Naive RAG Data Flow](naive_rag_dataflow.png)

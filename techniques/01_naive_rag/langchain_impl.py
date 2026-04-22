@@ -11,7 +11,7 @@ This is the starting point for all RAG systems.
 Reference: https://github.com/NirDiamant/RAG_Techniques/blob/main/all_rag_techniques/simple_rag.ipynb
 """
 
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 import logging
 
 from langchain_core.prompts import ChatPromptTemplate
@@ -30,15 +30,17 @@ logger = logging.getLogger(__name__)
 # Prompt Template
 # ---------------------------------------------------------------------------
 
-RAG_PROMPT = ChatPromptTemplate.from_messages([
-    ("system", """You are a helpful assistant. Answer the user's question based ONLY on the
-provided context. If the answer is not in the context, say "I don't have enough information
-to answer this question."
+RAG_PROMPT = ChatPromptTemplate.from_template(
+    """
+    You are a helpful assistant. Answer the user's question based ONLY on the provided context.
+    If the answer is not in the context, say "I don't have enough information to answer this question."
+    Context:
+    {context}
 
-Context:
-{context}"""),
-    ("human", "{question}"),
-])
+    Question:
+    {question}
+    """
+)
 
 
 def format_docs(docs) -> str:
@@ -114,13 +116,13 @@ class NaiveRAGLangChain(BaseRAG):
 
         # 5. Build LCEL chain: retrieve → format → prompt → LLM → parse
         self.chain = (
-            {
-                "context": self.retriever | format_docs,
-                "question": RunnablePassthrough(),
-            }
-            | RAG_PROMPT
-            | self.llm
-            | StrOutputParser()
+                {
+                    "context": self.retriever | format_docs,
+                    "question": RunnablePassthrough(),
+                }
+                | RAG_PROMPT
+                | self.llm
+                | StrOutputParser()
         )
 
         self._is_indexed = True
@@ -150,34 +152,3 @@ class NaiveRAGLangChain(BaseRAG):
             ],
             metadata={"num_chunks_indexed": len(self.vector_store.get()["ids"])},
         )
-
-
-# ---------------------------------------------------------------------------
-# Quick Demo
-# ---------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
-
-    sample_docs = [
-        """RAG (Retrieval-Augmented Generation) is a technique that combines retrieval
-        systems with language models. It was introduced by Lewis et al. in 2020.
-        RAG retrieves relevant documents from a knowledge base and uses them as
-        context for the language model to generate accurate, grounded answers.""",
-
-        """The main components of a RAG system are: (1) a document indexer that
-        chunks and embeds documents into a vector store, (2) a retriever that
-        finds relevant chunks given a query, and (3) a generator (LLM) that
-        produces answers grounded in the retrieved context.""",
-
-        """Naive RAG follows a simple pipeline: index documents offline, then
-        at query time retrieve the top-K most similar chunks and pass them to
-        the LLM. Despite its simplicity, it works well for many production use
-        cases and serves as the baseline for all advanced RAG techniques.""",
-    ]
-
-    rag = NaiveRAGLangChain(config=ConfigLoader.get()._config)
-    rag.index(sample_docs)
-    result = rag.query("What is RAG and what are its main components?")
-    result.print_summary()

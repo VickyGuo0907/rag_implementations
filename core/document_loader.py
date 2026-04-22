@@ -19,6 +19,25 @@ from core.config_loader import ConfigLoader
 # Document Loading
 # ---------------------------------------------------------------------------
 
+def _get_loader_for_file(file_path: str):
+    """Return instantiated loader based on file extension."""
+    from langchain_community.document_loaders import (
+        TextLoader, PyPDFLoader, CSVLoader, Docx2txtLoader
+    )
+
+    suffix = Path(file_path).suffix.lower()
+    if suffix == ".pdf":
+        return PyPDFLoader(file_path)
+    elif suffix in (".txt", ".md"):
+        return TextLoader(file_path)
+    elif suffix == ".csv":
+        return CSVLoader(file_path)
+    elif suffix in (".docx", ".doc"):
+        return Docx2txtLoader(file_path)
+    else:
+        return TextLoader(file_path)
+
+
 def load_documents(source: str, glob: str = "**/*.*") -> List[Any]:
     """
     Load documents from a file, directory, or URL using LangChain loaders.
@@ -33,11 +52,11 @@ def load_documents(source: str, glob: str = "**/*.*") -> List[Any]:
     source_path = Path(source)
 
     if source_path.is_dir():
-        from langchain_community.document_loaders import DirectoryLoader, TextLoader
+        from langchain_community.document_loaders import DirectoryLoader
         loader = DirectoryLoader(
             str(source_path),
             glob=glob,
-            loader_cls=TextLoader,
+            loader_cls=_get_loader_for_file,
             show_progress=True,
         )
         return loader.load()

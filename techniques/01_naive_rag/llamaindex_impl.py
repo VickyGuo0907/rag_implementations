@@ -53,7 +53,6 @@ class NaiveRAGLlamaIndex(BaseRAG):
         )
 
         self.top_k = cfg.retrieval.get("top_k", 5)
-        self.index = None
         self.query_engine = None
 
         logger.info(f"[NaiveRAG/LI] Initialized | model={cfg.lmstudio.get('model')}")
@@ -116,31 +115,3 @@ class NaiveRAGLlamaIndex(BaseRAG):
             source_documents=source_documents,
             metadata={"response_metadata": response.metadata or {}},
         )
-
-
-# ---------------------------------------------------------------------------
-# Quick Demo
-# ---------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
-
-    sample_docs = [
-        """RAG (Retrieval-Augmented Generation) enhances LLMs by grounding responses
-        in retrieved documents. This dramatically reduces hallucinations and allows
-        models to answer questions about domain-specific or recent information.""",
-
-        """LlamaIndex provides a high-level framework for building RAG pipelines.
-        It handles document ingestion, chunking, embedding, indexing, and query
-        execution with minimal boilerplate code.""",
-
-        """Vector stores are the backbone of RAG systems. They store document embeddings
-        and support approximate nearest-neighbor search. Popular options include
-        ChromaDB, FAISS, Pinecone, Qdrant, and Weaviate.""",
-    ]
-
-    rag = NaiveRAGLlamaIndex(config=ConfigLoader.get()._config)
-    rag.index(sample_docs)
-    result = rag.query("How does LlamaIndex help build RAG systems?")
-    result.print_summary()

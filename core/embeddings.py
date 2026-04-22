@@ -34,7 +34,7 @@ def get_langchain_embeddings(provider: Optional[str] = None):
         return OpenAIEmbeddings(
             base_url=emb_cfg.get("base_url", "http://localhost:1234/v1"),
             api_key=emb_cfg.get("api_key", "lm-studio"),
-            model=emb_cfg.get("model", "nomic-embed-text-v1.5"),
+            model=emb_cfg.get("model", "text-embedding-3-small"),
             timeout=120,
             max_retries=2,
         )
@@ -73,10 +73,11 @@ def get_llamaindex_embeddings(provider: Optional[str] = None):
 
     if prov == "lmstudio":
         from llama_index.embeddings.openai import OpenAIEmbedding
+        model_name = emb_cfg.get("model", "text-embedding-3-small")
         return OpenAIEmbedding(
             api_base=emb_cfg.get("base_url", "http://localhost:1234/v1"),
             api_key=emb_cfg.get("api_key", "lm-studio"),
-            model=emb_cfg.get("model", "nomic-embed-text-v1.5"),
+            model=model_name,
         )
 
     elif prov in ("huggingface", "sentence_transformers"):

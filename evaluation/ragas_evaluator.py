@@ -86,11 +86,11 @@ class RAGASEvaluator:
             )
 
     def evaluate(
-        self,
-        rag: BaseRAG,
-        questions: List[str],
-        ground_truths: Optional[List[str]] = None,
-        contexts_override: Optional[List[List[str]]] = None,
+            self,
+            rag: BaseRAG,
+            questions: List[str],
+            ground_truths: Optional[List[str]] = None,
+            contexts_override: Optional[List[List[str]]] = None,
     ) -> EvaluationResult:
         """
         Run RAGAS evaluation on a RAG pipeline.
@@ -111,7 +111,7 @@ class RAGASEvaluator:
         contexts = []
 
         for i, question in enumerate(questions):
-            logger.info(f"  [{i+1}/{len(questions)}] {question[:60]}...")
+            logger.info(f"  [{i + 1}/{len(questions)}] {question[:60]}...")
             try:
                 result = rag.query(question)
                 answers.append(result.answer)
@@ -140,11 +140,11 @@ class RAGASEvaluator:
         return result
 
     def _run_ragas(
-        self,
-        questions: List[str],
-        answers: List[str],
-        contexts: List[List[str]],
-        ground_truths: Optional[List[str]],
+            self,
+            questions: List[str],
+            answers: List[str],
+            contexts: List[List[str]],
+            ground_truths: Optional[List[str]],
     ) -> Dict[str, float]:
         """Run actual RAGAS evaluation."""
         from datasets import Dataset
@@ -185,10 +185,10 @@ class RAGASEvaluator:
         return dict(result)
 
     def _fallback_metrics(
-        self,
-        questions: List[str],
-        answers: List[str],
-        contexts: List[List[str]],
+            self,
+            questions: List[str],
+            answers: List[str],
+            contexts: List[List[str]],
     ) -> Dict[str, float]:
         """
         Simple fallback metrics when RAGAS is unavailable.

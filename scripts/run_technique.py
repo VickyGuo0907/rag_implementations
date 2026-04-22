@@ -121,6 +121,7 @@ def main():
             "What is RAG?",
             "What are the main components of RAG?",
             "How does Advanced RAG differ from Naive RAG?",
+            "What is Pytorch Tensor?"
         ]
         evaluator = RAGASEvaluator()
         eval_result = evaluator.evaluate(rag, eval_questions)

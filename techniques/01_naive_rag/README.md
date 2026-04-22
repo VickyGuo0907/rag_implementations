@@ -45,10 +45,47 @@ flowchart TD
 
 ## Implementation Files
 
-| File | Framework | Description |
-|------|-----------|-------------|
-| `langchain_impl.py` | LangChain | LCEL chain with ChromaDB |
-| `llamaindex_impl.py` | LlamaIndex | VectorStoreIndex + QueryEngine |
+| File | Framework | Description | Lines |
+|------|-----------|-------------|-------|
+| `langchain_impl.py` | LangChain | LCEL chain with ChromaDB | 154 |
+| `llamaindex_impl.py` | LlamaIndex | VectorStoreIndex + QueryEngine | 117 |
+| `__init__.py` | Both | Clean exports of both implementations | 4 |
+
+### Code Quality
+- ✅ No unused imports
+- ✅ Clear separation of concerns
+- ✅ Consistent error handling
+- ✅ Comprehensive logging
+- ✅ Both implementations follow the same `BaseRAG` interface
+
+### Framework Comparison
+
+| Aspect | LangChain | LlamaIndex |
+|--------|-----------|-----------|
+| **Code clarity** | LCEL chain (functional) | QueryEngine (higher-level) |
+| **Customization** | More granular control | Simplified abstractions |
+| **Learning curve** | Steeper for LCEL | Gentler, more intuitive |
+| **Production-ready** | ⭐⭐⭐⭐ | ⭐⭐⭐⭐ |
+| **Community** | Larger, more resources | Growing, excellent docs |
+
+**Choose LangChain if:** You want fine-grained control over each step and prefer functional composition patterns.
+
+**Choose LlamaIndex if:** You want to move fast and prefer high-level abstractions that handle boilerplate automatically.
+
+---
+
+## Imports
+
+Both implementations are cleanly exported from the package:
+
+```python
+# Direct import from package
+from techniques.naive_rag import NaiveRAGLangChain, NaiveRAGLlamaIndex
+
+# Or specific framework
+from techniques.naive_rag.langchain_impl import NaiveRAGLangChain
+from techniques.naive_rag.llamaindex_impl import NaiveRAGLlamaIndex
+```
 
 ---
 
@@ -108,6 +145,8 @@ retrieval:
 
 ## Quick Start
 
+### LangChain Implementation
+
 ```python
 from techniques.naive_rag.langchain_impl import NaiveRAGLangChain
 from core.config_loader import ConfigLoader
@@ -116,6 +155,28 @@ rag = NaiveRAGLangChain(config=ConfigLoader.get())
 rag.index(["Your document text here...", "Another document..."])
 result = rag.query("What is the main topic?")
 result.print_summary()
+```
+
+### LlamaIndex Implementation
+
+```python
+from techniques.naive_rag.llamaindex_impl import NaiveRAGLlamaIndex
+from core.config_loader import ConfigLoader
+
+rag = NaiveRAGLlamaIndex(config=ConfigLoader.get())
+rag.index(["Your document text here...", "Another document..."])
+result = rag.query("What is the main topic?")
+result.print_summary()
+```
+
+### Via CLI
+
+```bash
+# LangChain
+python scripts/run_technique.py --technique naive_rag --framework langchain --query "Your question"
+
+# LlamaIndex
+python scripts/run_technique.py --technique naive_rag --framework llamaindex --query "Your question"
 ```
 
 ---

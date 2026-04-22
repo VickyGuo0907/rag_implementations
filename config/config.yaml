@@ -33,17 +33,31 @@ lmstudio_small:
 # LMStudio also serves embedding models via the same API
 # -----------------------------------------------------------------------------
 embeddings:
-  provider: "huggingface"           # Options: lmstudio, huggingface, sentence_transformers
-  model: "nomic-embed-text-v1.5"    # (ignored for HuggingFace provider)
-  base_url: "http://localhost:1234/v1"
-  api_key: "lm-studio"
+  # IMPORTANT: Embedding Configuration
+  # ====================================
+  # LangChain + LMStudio: API incompatibility issue (tokenization format mismatch)
+  #   Workaround: Use HuggingFace embeddings locally (no server needed)
+  # LlamaIndex + LMStudio: Works with model name: "text-embedding-3-small"
+  #
+  # Recommended setup:
+  #   - Use HuggingFace for both LangChain and LlamaIndex (simplest, no server)
+  #   - Use LMStudio only for LlamaIndex if you want to leverage LMStudio's embedding server
+
+  provider: "huggingface"           # Options: lmstudio (LlamaIndex only), huggingface, sentence_transformers
+
+  # Local HuggingFace embeddings (works with both LangChain and LlamaIndex)
+  huggingface_fallback:
+    model: "sentence-transformers/all-MiniLM-L6-v2"
+    device: "cpu"                   # Options: cpu, cuda, mps (mps for M-series Macs)
   dimension: 768
   batch_size: 32
 
-  # Local HuggingFace embeddings (no server required, Python 3.14 compatible)
-  huggingface_fallback:
-    model: "sentence-transformers/all-MiniLM-L6-v2"
-    device: "cpu"                   # Options: cpu, cuda, mps
+  # Alternative: LMStudio embeddings (LlamaIndex only)
+  # Uncomment below to enable, but LangChain will still use HuggingFace due to API compatibility
+  # lmstudio:
+  #   model: "text-embedding-3-small"    # Must use standard OpenAI model name for LlamaIndex
+  #   base_url: "http://localhost:1234/v1"
+  #   api_key: "lm-studio"
 
 # -----------------------------------------------------------------------------
 # Vector Store Configuration

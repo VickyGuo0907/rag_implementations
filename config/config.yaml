@@ -52,12 +52,6 @@ embeddings:
   dimension: 768
   batch_size: 32
 
-  # Alternative: LMStudio embeddings (LlamaIndex only)
-  # Uncomment below to enable, but LangChain will still use HuggingFace due to API compatibility
-  # lmstudio:
-  #   model: "text-embedding-3-small"    # Must use standard OpenAI model name for LlamaIndex
-  #   base_url: "http://localhost:1234/v1"
-  #   api_key: "lm-studio"
 
 # -----------------------------------------------------------------------------
 # Vector Store Configuration

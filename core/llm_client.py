@@ -39,6 +39,68 @@ def get_langchain_llm(config_key: str = "lmstudio"):
     )
 
 
+class LMStudioOpenAI:
+    """Wrapper around LlamaIndex OpenAI client for LMStudio compatibility.
+
+    Solves the problem that LlamaIndex validates model names against OpenAI's list,
+    but LMStudio needs the actual model name in API calls.
+    """
+
+    def __init__(self, base_url: str, api_key: str, actual_model: str, **kwargs):
+        """Initialize wrapper with actual model for API calls."""
+        from llama_index.llms.openai import OpenAI
+
+        self.actual_model = actual_model
+        # Create client with placeholder for LlamaIndex validation
+        self._llm = OpenAI(
+            api_base=base_url,
+            api_key=api_key,
+            model="gpt-3.5-turbo",
+            **kwargs
+        )
+
+    def __getattr__(self, name):
+        """Delegate all other attributes to the wrapped LLM."""
+        return getattr(self._llm, name)
+
+    def complete(self, prompt: str, **kwargs):
+        """Override complete to use actual model name."""
+        # Temporarily change model for the API call
+        original_model = self._llm.model
+        self._llm.model = self.actual_model
+        try:
+            return self._llm.complete(prompt, **kwargs)
+        finally:
+            self._llm.model = original_model
+
+    def chat(self, messages, **kwargs):
+        """Override chat to use actual model name."""
+        original_model = self._llm.model
+        self._llm.model = self.actual_model
+        try:
+            return self._llm.chat(messages, **kwargs)
+        finally:
+            self._llm.model = original_model
+
+    def stream_complete(self, prompt: str, **kwargs):
+        """Override stream_complete to use actual model name."""
+        original_model = self._llm.model
+        self._llm.model = self.actual_model
+        try:
+            return self._llm.stream_complete(prompt, **kwargs)
+        finally:
+            self._llm.model = original_model
+
+    def stream_chat(self, messages, **kwargs):
+        """Override stream_chat to use actual model name."""
+        original_model = self._llm.model
+        self._llm.model = self.actual_model
+        try:
+            return self._llm.stream_chat(messages, **kwargs)
+        finally:
+            self._llm.model = original_model
+
+
 def get_llamaindex_llm(config_key: str = "lmstudio"):
     """
     Returns a LlamaIndex OpenAI LLM instance pointed at LMStudio.
@@ -47,35 +109,22 @@ def get_llamaindex_llm(config_key: str = "lmstudio"):
         config_key: "lmstudio" for main model, "lmstudio_small" for fast model.
 
     Returns:
-        llama_index.llms.openai.OpenAI instance
+        LMStudioOpenAI wrapper instance
 
-    Note: Creates a custom OpenAI client wrapper that uses the actual model name
-    from config in API calls, while using gpt-3.5-turbo for LlamaIndex's metadata
-    validation (context window detection).
+    Note: Uses gpt-3.5-turbo for LlamaIndex's model validation while sending
+    the actual configured model name to LMStudio in API calls.
     """
-    from llama_index.llms.openai import OpenAI
-
     cfg = ConfigLoader.get()
     lm_cfg = cfg[config_key]
-    actual_model = lm_cfg["model"]
 
-    # Create OpenAI client with placeholder model for validation
-    llm = OpenAI(
-        api_base=lm_cfg["base_url"],
+    return LMStudioOpenAI(
+        base_url=lm_cfg["base_url"],
         api_key=lm_cfg["api_key"],
-        model="gpt-3.5-turbo",
+        actual_model=lm_cfg["model"],
         temperature=lm_cfg.get("temperature", 0.1),
         max_tokens=lm_cfg.get("max_tokens", 2048),
         timeout=lm_cfg.get("timeout", 120),
     )
-
-    # Override the client's model parameter to use the actual configured model
-    # This allows LlamaIndex to validate the model, but use the actual model in API calls
-    llm._client.model = actual_model
-    if hasattr(llm, "_async_client"):
-        llm._async_client.model = actual_model
-
-    return llm
 
 
 def get_langchain_llm_with_fallback(config_key: str = "lmstudio"):

@@ -49,18 +49,18 @@ def get_llamaindex_llm(config_key: str = "lmstudio"):
     Returns:
         llama_index.llms.openai.OpenAI instance
 
-    Note: Uses gpt-3.5-turbo as placeholder. LMStudio's actual model is determined
-    by what's loaded on the server, not the model name parameter.
+    Note: Creates a custom OpenAI client wrapper that uses the actual model name
+    from config in API calls, while using gpt-3.5-turbo for LlamaIndex's metadata
+    validation (context window detection).
     """
     from llama_index.llms.openai import OpenAI
 
     cfg = ConfigLoader.get()
     lm_cfg = cfg[config_key]
+    actual_model = lm_cfg["model"]
 
-    # Use a known OpenAI model name for LlamaIndex validation.
-    # LMStudio's actual model is determined by the server, not this parameter.
-    # This is just metadata for context window sizing.
-    return OpenAI(
+    # Create OpenAI client with placeholder model for validation
+    llm = OpenAI(
         api_base=lm_cfg["base_url"],
         api_key=lm_cfg["api_key"],
         model="gpt-3.5-turbo",
@@ -68,6 +68,14 @@ def get_llamaindex_llm(config_key: str = "lmstudio"):
         max_tokens=lm_cfg.get("max_tokens", 2048),
         timeout=lm_cfg.get("timeout", 120),
     )
+
+    # Override the client's model parameter to use the actual configured model
+    # This allows LlamaIndex to validate the model, but use the actual model in API calls
+    llm._client.model = actual_model
+    if hasattr(llm, "_async_client"):
+        llm._async_client.model = actual_model
+
+    return llm
 
 
 def get_langchain_llm_with_fallback(config_key: str = "lmstudio"):

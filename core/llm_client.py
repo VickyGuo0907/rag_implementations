@@ -39,68 +39,6 @@ def get_langchain_llm(config_key: str = "lmstudio"):
     )
 
 
-class LMStudioOpenAI:
-    """Wrapper around LlamaIndex OpenAI client for LMStudio compatibility.
-
-    Solves the problem that LlamaIndex validates model names against OpenAI's list,
-    but LMStudio needs the actual model name in API calls.
-    """
-
-    def __init__(self, base_url: str, api_key: str, actual_model: str, **kwargs):
-        """Initialize wrapper with actual model for API calls."""
-        from llama_index.llms.openai import OpenAI
-
-        self.actual_model = actual_model
-        # Create client with placeholder for LlamaIndex validation
-        self._llm = OpenAI(
-            api_base=base_url,
-            api_key=api_key,
-            model="gpt-3.5-turbo",
-            **kwargs
-        )
-
-    def __getattr__(self, name):
-        """Delegate all other attributes to the wrapped LLM."""
-        return getattr(self._llm, name)
-
-    def complete(self, prompt: str, **kwargs):
-        """Override complete to use actual model name."""
-        # Temporarily change model for the API call
-        original_model = self._llm.model
-        self._llm.model = self.actual_model
-        try:
-            return self._llm.complete(prompt, **kwargs)
-        finally:
-            self._llm.model = original_model
-
-    def chat(self, messages, **kwargs):
-        """Override chat to use actual model name."""
-        original_model = self._llm.model
-        self._llm.model = self.actual_model
-        try:
-            return self._llm.chat(messages, **kwargs)
-        finally:
-            self._llm.model = original_model
-
-    def stream_complete(self, prompt: str, **kwargs):
-        """Override stream_complete to use actual model name."""
-        original_model = self._llm.model
-        self._llm.model = self.actual_model
-        try:
-            return self._llm.stream_complete(prompt, **kwargs)
-        finally:
-            self._llm.model = original_model
-
-    def stream_chat(self, messages, **kwargs):
-        """Override stream_chat to use actual model name."""
-        original_model = self._llm.model
-        self._llm.model = self.actual_model
-        try:
-            return self._llm.stream_chat(messages, **kwargs)
-        finally:
-            self._llm.model = original_model
-
-
 def get_llamaindex_llm(config_key: str = "lmstudio"):
     """
     Returns a LlamaIndex OpenAI LLM instance pointed at LMStudio.
@@ -109,18 +47,34 @@ def get_llamaindex_llm(config_key: str = "lmstudio"):
         config_key: "lmstudio" for main model, "lmstudio_small" for fast model.
 
     Returns:
-        LMStudioOpenAI wrapper instance
+        llama_index.llms.openai.OpenAI instance
 
-    Note: Uses gpt-3.5-turbo for LlamaIndex's model validation while sending
-    the actual configured model name to LMStudio in API calls.
+    Note: Patches LlamaIndex's model validation to allow custom model names
+    from LMStudio (which aren't in OpenAI's official list).
     """
+    from llama_index.llms.openai import OpenAI
+    from llama_index.llms import openai as openai_module
+
+    # Patch the validation function to allow any model name
+    original_func = openai_module.openai_modelname_to_contextsize
+
+    def patched_validation(model_name: str):
+        """Allow custom model names, default to gpt-3.5-turbo context if unknown."""
+        try:
+            return original_func(model_name)
+        except ValueError:
+            # For unknown models (like LMStudio custom names), use gpt-3.5-turbo size
+            return original_func("gpt-3.5-turbo")
+
+    openai_module.openai_modelname_to_contextsize = patched_validation
+
     cfg = ConfigLoader.get()
     lm_cfg = cfg[config_key]
 
-    return LMStudioOpenAI(
-        base_url=lm_cfg["base_url"],
+    return OpenAI(
+        api_base=lm_cfg["base_url"],
         api_key=lm_cfg["api_key"],
-        actual_model=lm_cfg["model"],
+        model=lm_cfg["model"],
         temperature=lm_cfg.get("temperature", 0.1),
         max_tokens=lm_cfg.get("max_tokens", 2048),
         timeout=lm_cfg.get("timeout", 120),

@@ -53,10 +53,10 @@ def get_llamaindex_llm(config_key: str = "lmstudio"):
     from LMStudio (which aren't in OpenAI's official list).
     """
     from llama_index.llms.openai import OpenAI
-    from llama_index.llms import openai as openai_module
+    from llama_index.llms.openai import utils, base
 
-    # Patch the validation function to allow any model name
-    original_func = openai_module.openai_modelname_to_contextsize
+    # Get the original function from utils module
+    original_func = utils.openai_modelname_to_contextsize
 
     def patched_validation(model_name: str):
         """Allow custom model names, default to gpt-3.5-turbo context if unknown."""
@@ -66,7 +66,9 @@ def get_llamaindex_llm(config_key: str = "lmstudio"):
             # For unknown models (like LMStudio custom names), use gpt-3.5-turbo size
             return original_func("gpt-3.5-turbo")
 
-    openai_module.openai_modelname_to_contextsize = patched_validation
+    # Patch in all places the function is imported
+    utils.openai_modelname_to_contextsize = patched_validation
+    base.openai_modelname_to_contextsize = patched_validation
 
     cfg = ConfigLoader.get()
     lm_cfg = cfg[config_key]

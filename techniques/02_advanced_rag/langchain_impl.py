@@ -114,7 +114,7 @@ class AdvancedRAGLangChain(BaseRAG):
     def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
         """Chunk, embed, and store documents. Build reranker and retriever."""
         from langchain_chroma import Chroma
-        from langchain.retrievers.multi_query import MultiQueryRetriever
+        from langchain_community.retrievers.multi_query import MultiQueryRetriever
 
         logger.info(f"[AdvancedRAG/LC] Indexing {len(documents)} documents...")
 

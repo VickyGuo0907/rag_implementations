@@ -114,7 +114,6 @@ class AdvancedRAGLangChain(BaseRAG):
     def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
         """Chunk, embed, and store documents. Build reranker and retriever."""
         from langchain_chroma import Chroma
-        from langchain_community.retrievers.multi_query import MultiQueryRetriever
 
         logger.info(f"[AdvancedRAG/LC] Indexing {len(documents)} documents...")
 
@@ -136,11 +135,16 @@ class AdvancedRAGLangChain(BaseRAG):
             search_kwargs={"k": self.initial_k}
         )
 
-        # Multi-query retriever: generates N query variants automatically
-        self.retriever = MultiQueryRetriever.from_llm(
-            retriever=base_retriever,
-            llm=self.llm,
-        )
+        # Try to use multi-query retriever; fall back to base if unavailable
+        try:
+            from langchain_community.retrievers.multi_query import MultiQueryRetriever
+            self.retriever = MultiQueryRetriever.from_llm(
+                retriever=base_retriever,
+                llm=self.llm,
+            )
+        except (ImportError, ModuleNotFoundError):
+            logger.warning("[AdvancedRAG/LC] MultiQueryRetriever not available, using base retriever")
+            self.retriever = base_retriever
 
         # Build cross-encoder reranker (local, no API needed)
         if self.enable_reranking:
@@ -152,7 +156,7 @@ class AdvancedRAGLangChain(BaseRAG):
     def _build_reranker(self) -> None:
         """Initialize cross-encoder reranker for post-retrieval ranking."""
         try:
-            from langchain.retrievers.document_compressors import CrossEncoderReranker
+            from langchain_community.document_compressors import CrossEncoderReranker
             from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 
             cfg = ConfigLoader.get()

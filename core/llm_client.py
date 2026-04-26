@@ -48,16 +48,22 @@ def get_llamaindex_llm(config_key: str = "lmstudio"):
 
     Returns:
         llama_index.llms.openai.OpenAI instance
+
+    Note: Uses gpt-3.5-turbo as placeholder. LMStudio's actual model is determined
+    by what's loaded on the server, not the model name parameter.
     """
     from llama_index.llms.openai import OpenAI
 
     cfg = ConfigLoader.get()
     lm_cfg = cfg[config_key]
 
+    # Use a known OpenAI model name for LlamaIndex validation.
+    # LMStudio's actual model is determined by the server, not this parameter.
+    # This is just metadata for context window sizing.
     return OpenAI(
         api_base=lm_cfg["base_url"],
         api_key=lm_cfg["api_key"],
-        model=lm_cfg["model"],
+        model="gpt-3.5-turbo",
         temperature=lm_cfg.get("temperature", 0.1),
         max_tokens=lm_cfg.get("max_tokens", 2048),
         timeout=lm_cfg.get("timeout", 120),

@@ -88,11 +88,17 @@ class NaiveRAGLangChain(BaseRAG):
             metadatas: Optional per-document metadata.
         """
         from langchain_chroma import Chroma
+        from langchain_core.documents import Document as LCDocument
 
         logger.info(f"[NaiveRAG/LC] Indexing {len(documents)} documents...")
 
         # 1. Wrap raw strings in LangChain Document objects
-        lc_docs = load_texts(documents, metadatas)
+        if metadatas is None:
+            metadatas = [{}] * len(documents)
+        lc_docs = [
+            LCDocument(page_content=text, metadata=meta)
+            for text, meta in zip(documents, metadatas)
+        ]
 
         # 2. Chunk documents
         chunks = self.text_splitter.split_documents(lc_docs)

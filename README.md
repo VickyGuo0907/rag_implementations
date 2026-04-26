@@ -49,8 +49,8 @@ RAG_technique_summary/
 ├── data/
 │   └── sample_docs/                   # Sample documents for testing
 │
-├── scripts/
-│   └── run_technique.py               # CLI runner for any technique
+├── main.py                            # 🚀 Main CLI entry point
+└── scripts/                           # (utility scripts)
 │
 ├── requirements.txt
 └── README.md                          # ← You are here
@@ -129,28 +129,41 @@ embeddings:
 ### 3. Run Naive RAG
 
 ```bash
+# Discover available techniques
+python main.py list
+
+# Get technique details
+python main.py info naive_rag
+
 # LangChain version (interactive mode, default sample docs)
-python scripts/run_technique.py --technique naive_rag --framework langchain
+python main.py run --technique naive_rag --framework langchain
 
 # LlamaIndex version
-python scripts/run_technique.py --technique naive_rag --framework llamaindex
+python main.py run --technique naive_rag --framework llamaindex
 
 # Single query
-python scripts/run_technique.py \
+python main.py run \
   --technique naive_rag \
   --framework langchain \
   --docs ./data/sample_docs \
   --query "What is RAG and how does it work?"
 
 # With RAGAS evaluation
-python scripts/run_technique.py --technique naive_rag --evaluate
+python main.py run --technique naive_rag --evaluate
+
+# Evaluate technique quality
+python main.py eval --technique naive_rag --framework langchain
 
 # Load both text and PDF documents
-python scripts/run_technique.py \
+python main.py run \
   --technique naive_rag \
   --framework langchain \
   --docs ./data/sample_docs \
   --query "Explain the key concepts"
+
+# View configuration
+python main.py config show
+python main.py config validate
 ```
 
 ### 4. Run from Python
@@ -184,9 +197,68 @@ docs = load_documents('data/sample_docs')
 print(f'✅ Loaded {len(docs)} documents')
 "
 
+# Test CLI
+python main.py list          # List techniques
+python main.py info naive_rag # Get technique info
+
 # Test both implementations
-python scripts/run_technique.py --technique naive_rag --framework langchain --query "Test"
-python scripts/run_technique.py --technique naive_rag --framework llamaindex --query "Test"
+python main.py run --technique naive_rag --framework langchain --query "Test"
+python main.py run --technique naive_rag --framework llamaindex --query "Test"
+```
+
+---
+
+## CLI Reference
+
+**Main entry point: `python main.py <command> [options]`**
+
+### Commands
+
+| Command | Purpose |
+|---------|---------|
+| `run` | Execute a RAG technique with optional query and evaluation |
+| `list` | Display all available techniques with complexity and status |
+| `info <technique>` | Show detailed information about a specific technique |
+| `eval` | Evaluate a technique using RAGAS metrics |
+| `config` | Show or validate project configuration |
+
+### Examples
+
+```bash
+# Run with defaults (interactive mode, LangChain, sample docs)
+python main.py run --technique naive_rag
+
+# Run with custom parameters
+python main.py run \
+  --technique advanced_rag \
+  --framework llamaindex \
+  --docs ./my_documents \
+  --query "What is the main topic?" \
+  --evaluate
+
+# List all techniques with metadata
+python main.py list
+
+# Get detailed technique information
+python main.py info hyde_rag
+
+# Evaluate technique quality
+python main.py eval --technique naive_rag
+
+# Manage configuration
+python main.py config show      # Display current config
+python main.py config validate  # Validate config file
+```
+
+### Run Command Options
+
+```
+--technique TECHNIQUE   : RAG technique (required)
+--framework FRAMEWORK   : langchain or llamaindex (default: langchain)
+--docs DOCS            : Path to documents (default: ./data/sample_docs)
+--query QUERY          : Single query (omit for interactive mode)
+--config CONFIG        : Custom config.yaml path (default: ./config/config.yaml)
+--evaluate             : Run RAGAS evaluation after querying
 ```
 
 ---
@@ -322,8 +394,10 @@ Example: `01_naive_rag` is fully production-ready with clean code, detailed docu
 4. Set `TECHNIQUE_NAME` and `FRAMEWORK` class attributes
 5. Implement `_build_pipeline()`, `index()`, and `_query()`
 6. Create `README.md` with flowchart, use cases, comparison, and pros/cons
-7. Register in `scripts/run_technique.py` TECHNIQUE_CLASSES mapping
-8. Test: `python scripts/run_technique.py --technique your_technique --framework langchain`
+7. Register in `main.py`:
+   - Add to `TECHNIQUE_CLASSES` mapping
+   - Add to `TECHNIQUES_METADATA` with technique details
+8. Test: `python main.py run --technique your_technique --framework langchain`
 
 ---
 
@@ -382,6 +456,7 @@ Key sections:
 
 ## References
 
+- [Awesome RAG — Curated Collection](https://github.com/Danielskry/Awesome-RAG) — Comprehensive resources, papers, and implementations
 - [RAG Paper — Lewis et al. 2020](https://arxiv.org/abs/2005.11401)
 - [NirDiamant/RAG_Techniques](https://github.com/NirDiamant/RAG_Techniques) — 42 technique notebooks
 - [RAGAS Documentation](https://docs.ragas.io)

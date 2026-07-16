@@ -58,39 +58,6 @@ RAG_technique_summary/
 
 ---
 
-## Recent Updates & Fixes
-
-### ✅ Latest Improvements (April 2026)
-
-1. **Streamlit Web Interface** ✨ NEW
-   - Centralized web UI for interactive RAG exploration (`app.py`)
-   - Technique selector dropdown with metadata display
-   - Framework toggle (LangChain/LlamaIndex) with session caching
-   - Custom document path input
-   - Interactive query interface with real-time result display
-   - Result formatting: answer, latency, technique, and framework metrics
-   - Source document expansion cards with metadata and scores
-   - Optional RAGAS evaluation with quality metrics visualization
-   - Session state management: RAG instances cached and invalidated on config changes
-   - Run with: `streamlit run app.py` → opens at http://localhost:8501
-
-2. **Main CLI Consolidation**
-   - Refactored `scripts/run_technique.py` into centralized `main.py` entry point
-   - 5 subcommands: `run`, `list`, `info`, `eval`, `config`
-   - Cleaner architecture: single entry point instead of scattered scripts
-   - All examples updated to use `python main.py` instead of legacy scripts
-
-3. **Framework Compatibility Fixes**
-   - Fixed LlamaIndex model validation: patched `openai_modelname_to_contextsize` to allow custom LMStudio model names
-   - Fixed MultiQueryRetriever import with graceful fallback
-   - Fixed CrossEncoderReranker import path from langchain_community
-   - Both LangChain and LlamaIndex now fully compatible with custom model names
-
-4. **Document Loading Fixes**
-   - Fixed naive_rag indexing: properly wraps raw text strings in LangChain Document objects
-   - Supports: `.txt`, `.md`, `.pdf`, `.csv`, `.docx`, and `.doc` files
-   - Example: `python main.py run --technique naive_rag --docs ./data/sample_docs` loads all file types
-
 ### 📋 Supported Document Types
 
 | Type | Support | Notes |

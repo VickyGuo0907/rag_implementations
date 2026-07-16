@@ -50,7 +50,7 @@ RAG_technique_summary/
 │   └── sample_docs/                   # Sample documents for testing
 │
 ├── main.py                            # 🚀 Main CLI entry point
-└── scripts/                           # (utility scripts)
+├── app.py                             # 🌐 Streamlit web interface
 │
 ├── requirements.txt
 └── README.md                          # ← You are here
@@ -62,22 +62,34 @@ RAG_technique_summary/
 
 ### ✅ Latest Improvements (April 2026)
 
-1. **PDF Document Support** 
-   - Fixed document loader to properly handle PDF files alongside text documents
-   - Installed `pypdf` dependency for PDF parsing
-   - Example: `python scripts/run_technique.py --technique naive_rag --docs ./data/sample_docs` now loads both `.txt` and `.pdf` files
+1. **Streamlit Web Interface** ✨ NEW
+   - Centralized web UI for interactive RAG exploration (`app.py`)
+   - Technique selector dropdown with metadata display
+   - Framework toggle (LangChain/LlamaIndex) with session caching
+   - Custom document path input
+   - Interactive query interface with real-time result display
+   - Result formatting: answer, latency, technique, and framework metrics
+   - Source document expansion cards with metadata and scores
+   - Optional RAGAS evaluation with quality metrics visualization
+   - Session state management: RAG instances cached and invalidated on config changes
+   - Run with: `streamlit run app.py` → opens at http://localhost:8501
 
-2. **01_Naive_RAG Code Cleanup**
-   - Removed unused imports and ~50 lines of demo code
-   - Fixed `__init__.py` to properly export both `NaiveRAGLangChain` and `NaiveRAGLlamaIndex`
-   - Improved code quality: no unused imports, clear separation of concerns, comprehensive logging
-   - Both implementations now cleanly accessible: `from techniques.naive_rag import NaiveRAGLangChain, NaiveRAGLlamaIndex`
+2. **Main CLI Consolidation**
+   - Refactored `scripts/run_technique.py` into centralized `main.py` entry point
+   - 5 subcommands: `run`, `list`, `info`, `eval`, `config`
+   - Cleaner architecture: single entry point instead of scattered scripts
+   - All examples updated to use `python main.py` instead of legacy scripts
 
-3. **Embedding Model Configuration Fix**
-   - Resolved LMStudio embedding compatibility issues with both frameworks
-   - **Current recommendation**: Use HuggingFace embeddings (local, works with all frameworks)
-   - **Optional**: LMStudio embeddings work with LlamaIndex (requires standard OpenAI model names)
-   - Added detailed configuration notes in `config.yaml` explaining the tradeoffs
+3. **Framework Compatibility Fixes**
+   - Fixed LlamaIndex model validation: patched `openai_modelname_to_contextsize` to allow custom LMStudio model names
+   - Fixed MultiQueryRetriever import with graceful fallback
+   - Fixed CrossEncoderReranker import path from langchain_community
+   - Both LangChain and LlamaIndex now fully compatible with custom model names
+
+4. **Document Loading Fixes**
+   - Fixed naive_rag indexing: properly wraps raw text strings in LangChain Document objects
+   - Supports: `.txt`, `.md`, `.pdf`, `.csv`, `.docx`, and `.doc` files
+   - Example: `python main.py run --technique naive_rag --docs ./data/sample_docs` loads all file types
 
 ### 📋 Supported Document Types
 
@@ -126,7 +138,7 @@ embeddings:
 - **Recommended**: HuggingFace embeddings (works with both LangChain & LlamaIndex, local, no server)
 - **Alternative**: LMStudio embeddings work with LlamaIndex only (model name must be standard OpenAI name like `text-embedding-3-small`)
 
-### 3. Run Naive RAG
+### 3. Run with CLI
 
 ```bash
 # Discover available techniques
@@ -166,7 +178,34 @@ python main.py config show
 python main.py config validate
 ```
 
-### 4. Run from Python
+### 4. Run with Web Interface (Streamlit)
+
+```bash
+# Start the Streamlit web app
+streamlit run app.py
+
+# App will open at http://localhost:8501
+```
+
+**Features:**
+- 🎯 **Technique Selection** — Dropdown to choose any RAG technique
+- 🔧 **Framework Toggle** — Switch between LangChain and LlamaIndex
+- 📁 **Document Path** — Load custom documents or use defaults
+- 💬 **Interactive Queries** — Ask questions and see results in real-time
+- 📊 **Result Display** — Answer with latency, technique, and framework metrics
+- 📚 **Source Documents** — Expandable cards showing retrieved sources with metadata
+- 🔬 **RAGAS Evaluation** — Optional evaluation with quality metrics visualization
+
+Example workflow:
+1. Select **Naive RAG** from the technique dropdown
+2. Choose **LangChain** as the framework
+3. Click **🚀 Initialize RAG** to load and index documents
+4. Enter a question: "What is RAG?"
+5. Click **🔍 Ask** to get the answer
+6. Expand sources to see retrieved documents
+7. Run **📊 Evaluation** for quality metrics
+
+### 5. Run from Python
 
 ```python
 from core.config_loader import ConfigLoader
@@ -187,7 +226,7 @@ result = rag.query("What are the components of a RAG system?")
 result.print_summary()
 ```
 
-### 5. Verify Installation
+### 6. Verify Installation
 
 ```bash
 # Test document loading (PDF + text files)
@@ -260,6 +299,26 @@ python main.py config validate  # Validate config file
 --config CONFIG        : Custom config.yaml path (default: ./config/config.yaml)
 --evaluate             : Run RAGAS evaluation after querying
 ```
+
+---
+
+## CLI vs Web Interface Comparison
+
+| Feature | CLI | Web UI |
+|---------|-----|--------|
+| **Use Case** | Automation, scripting, batch processing | Interactive exploration, demos, user-friendly interface |
+| **Learning Curve** | Moderate (need to know commands) | Gentle (visual, point-and-click) |
+| **Technique Selection** | Command-line flag | Dropdown menu |
+| **Framework Toggle** | Command-line flag | Radio buttons |
+| **Query Mode** | Single query or interactive terminal | Interactive web form |
+| **Results Display** | Terminal output with formatting | Rich HTML with styled cards |
+| **Source Documents** | Printed to console | Expandable cards with metadata |
+| **Evaluation** | Terminal output with metrics | Charts and metric tiles |
+| **Session State** | Per-run | Persistent across interactions (cached) |
+| **Best For** | Production pipelines, testing | Demos, user testing, exploration |
+
+**Choose CLI if:** You need to automate RAG evaluation, integrate with scripts, or run batch queries  
+**Choose Web UI if:** You want to interactively explore techniques, demo to stakeholders, or test on real documents
 
 ---
 

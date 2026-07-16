@@ -133,18 +133,3 @@ class AdvancedRAGLlamaIndex(BaseRAG):
             },
         )
 
-
-if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
-
-    docs = [
-        "Self-attention allows transformers to relate different positions of a sequence when encoding a representation.",
-        "BERT uses masked language modeling and next sentence prediction as pre-training objectives.",
-        "GPT-3 with 175 billion parameters demonstrated remarkable few-shot learning capabilities.",
-    ]
-
-    rag = AdvancedRAGLlamaIndex(config=ConfigLoader.get()._config)
-    rag.index(docs)
-    result = rag.query("What pre-training objectives does BERT use?")
-    result.print_summary()

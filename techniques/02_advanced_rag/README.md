@@ -54,6 +54,24 @@ flowchart TD
 
 ---
 
+## Data Flow Diagram
+
+The complete Advanced RAG pipeline consists of two phases:
+
+### Offline Phase (Indexing)
+**Documents → Chunks → Embeddings → Vector Store**
+
+Identical to Naive RAG — this phase is unchanged and reused for every query.
+
+### Online Phase (Query)
+**Query → Rewrite → Multi-Query Expand → Multi-Vector Search → Dedupe → Rerank → Compress → LLM → Answer**
+
+The online phase wraps the Naive RAG core with three optimization layers: pre-retrieval query enhancement, deduplicated multi-vector retrieval, and post-retrieval reranking/compression before the LLM ever sees the context.
+
+![Advanced RAG Data Flow](advanced_rag_dataflow.png)
+
+---
+
 ## Implementation Files
 
 | File | Framework | Key Features |

@@ -45,13 +45,3 @@ TECHNIQUE_METADATA = {
     "agentic_rag":          {"tier": 4, "complexity": 5, "status": "stub"},
     "multimodal_rag":       {"tier": 4, "complexity": 4, "status": "stub"},
 }
-
-
-def list_techniques():
-    """Return list of all available technique names."""
-    return list(TECHNIQUE_DIRS.keys())
-
-
-def get_technique_status():
-    """Return implementation status for all techniques."""
-    return {k: v["status"] for k, v in TECHNIQUE_METADATA.items()}

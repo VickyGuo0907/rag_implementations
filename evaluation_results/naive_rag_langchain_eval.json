@@ -3,9 +3,10 @@
   "framework": "langchain",
   "num_samples": 3,
   "scores": {
-    "answer_coverage": 1.0,
-    "context_coverage": 1.0,
-    "avg_answer_words": 0.19
+    "answer_completeness": 1.0,
+    "context_retrieval": 1.0,
+    "answer_length": 0.19,
+    "context_density": 0.5
   },
   "metadata": {
     "questions": [
@@ -15,7 +16,7 @@
     ],
     "answers": [
       "\n\nI don't have enough information to answer this question.",
-      "\n\nBased on the provided context, one of the main components of RAG is the **Document Indexer**. It processes raw documents by chunking them into manageable pieces, computing vector embeddings for each chunk, and storing them in a vector database.",
+      "\n\nBased on the provided context, one of the RAG System Components listed is the **Document Indexer**. It processes raw documents by chunking them into manageable pieces, computing vector embeddings for each chunk, and storing them in a vector database.",
       "\n\nI don't have enough information to answer this question."
     ]
   }

@@ -135,9 +135,13 @@ class AdvancedRAGLangChain(BaseRAG):
             search_kwargs={"k": self.initial_k}
         )
 
-        # Try to use multi-query retriever; fall back to base if unavailable
+        # Try to use multi-query retriever; fall back to base if unavailable.
+        # LangChain 1.x moved this out of langchain_community into langchain_classic.
         try:
-            from langchain_community.retrievers.multi_query import MultiQueryRetriever
+            try:
+                from langchain_classic.retrievers.multi_query import MultiQueryRetriever
+            except (ImportError, ModuleNotFoundError):
+                from langchain_community.retrievers.multi_query import MultiQueryRetriever
             self.retriever = MultiQueryRetriever.from_llm(
                 retriever=base_retriever,
                 llm=self.llm,
@@ -156,7 +160,13 @@ class AdvancedRAGLangChain(BaseRAG):
     def _build_reranker(self) -> None:
         """Initialize cross-encoder reranker for post-retrieval ranking."""
         try:
-            from langchain_community.document_compressors import CrossEncoderReranker
+            # LangChain 1.x moved this out of langchain_community into langchain_classic.
+            try:
+                from langchain_classic.retrievers.document_compressors.cross_encoder_rerank import (
+                    CrossEncoderReranker,
+                )
+            except (ImportError, ModuleNotFoundError):
+                from langchain_community.document_compressors import CrossEncoderReranker
             from langchain_community.cross_encoders import HuggingFaceCrossEncoder
 
             cfg = ConfigLoader.get()
@@ -254,23 +264,3 @@ class AdvancedRAGLangChain(BaseRAG):
         )
 
 
-# ---------------------------------------------------------------------------
-# Quick Demo
-# ---------------------------------------------------------------------------
-
-if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
-
-    docs = [
-        "The transformer architecture introduced in 'Attention is All You Need' (2017) revolutionized NLP by replacing recurrent networks with self-attention mechanisms.",
-        "BERT (Bidirectional Encoder Representations from Transformers) pre-trains deep bidirectional representations from unlabeled text by conditioning on both left and right context.",
-        "GPT models use a decoder-only transformer architecture and are trained using causal language modeling, predicting the next token given all previous tokens.",
-        "LLaMA (Large Language Meta AI) models are open-source language models trained on publicly available data, demonstrating that smaller models trained on more data can outperform larger ones.",
-        "RAG enhances LLMs by retrieving relevant documents at inference time, reducing hallucinations and enabling knowledge updates without retraining.",
-    ]
-
-    rag = AdvancedRAGLangChain(config=ConfigLoader.get()._config)
-    rag.index(docs)
-    result = rag.query("How do transformer models differ from recurrent networks?")
-    result.print_summary()

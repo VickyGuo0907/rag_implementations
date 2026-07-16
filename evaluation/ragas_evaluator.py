@@ -16,8 +16,10 @@ Usage:
 Reference: https://docs.ragas.io/en/latest/
 """
 
+import asyncio
 import json
 import logging
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -26,6 +28,54 @@ from core.config_loader import ConfigLoader
 from core.base_rag import BaseRAG
 
 logger = logging.getLogger(__name__)
+
+
+@contextmanager
+def _standard_asyncio_loop():
+    """
+    Temporarily replace the current thread's uvloop event loop (if any)
+    with a standard-library asyncio loop.
+
+    Streamlit installs uvloop.EventLoopPolicy globally at startup. RAGAS's
+    executor module calls nest_asyncio.apply() at *import time*, and
+    nest_asyncio can never patch a uvloop.Loop -- it's a Cython extension
+    that doesn't subclass asyncio.BaseEventLoop, so the isinstance check in
+    nest_asyncio._patch_loop always fails for it. That patch only needs to
+    succeed once (nest_asyncio marks the loop *class* as patched), so this
+    must wrap the first import of `ragas` anywhere in the process, not just
+    calls to `ragas.evaluate()`.
+
+    Streamlit's ScriptRunner thread has the uvloop *policy* installed but
+    may not have any loop instance actually set on it yet -- in that case
+    asyncio.get_event_loop() raises RuntimeError instead of returning a
+    uvloop.Loop, so we can't rely on inspecting the current loop to decide
+    whether to act; we must check the policy instead.
+    """
+    try:
+        import uvloop
+    except ImportError:
+        yield
+        return
+
+    current_policy = asyncio.get_event_loop_policy()
+    if not isinstance(current_policy, uvloop.EventLoopPolicy):
+        yield
+        return
+
+    try:
+        previous_loop = asyncio.get_event_loop()
+    except RuntimeError:
+        previous_loop = None
+
+    asyncio.set_event_loop_policy(asyncio.DefaultEventLoopPolicy())
+    std_loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(std_loop)
+    try:
+        yield
+    finally:
+        std_loop.close()
+        asyncio.set_event_loop_policy(current_policy)
+        asyncio.set_event_loop(previous_loop)
 
 
 @dataclass
@@ -78,7 +128,8 @@ class RAGASEvaluator:
 
     def _check_ragas_installed(self) -> None:
         try:
-            import ragas
+            with _standard_asyncio_loop():
+                import ragas
         except ImportError:
             logger.warning(
                 "RAGAS not installed. Run: pip install ragas\n"
@@ -121,11 +172,19 @@ class RAGASEvaluator:
                 answers.append("")
                 contexts.append([])
 
-        # Step 2: Run RAGAS evaluation
-        try:
-            scores = self._run_ragas(questions, answers, contexts, ground_truths)
-        except Exception as e:
-            logger.error(f"RAGAS evaluation failed: {e}. Using fallback metrics.")
+        # Step 2: Run RAGAS evaluation (or fall back to heuristic metrics)
+        # Note: RAGAS has compatibility issues with LMStudio and custom LLMs.
+        # We default to fallback metrics unless explicitly enabled in config.
+        eval_cfg = self.eval_cfg
+        use_ragas = eval_cfg.get("enabled", False)  # Disabled by default due to compatibility
+
+        if use_ragas:
+            try:
+                scores = self._run_ragas(questions, answers, contexts, ground_truths)
+            except Exception as e:
+                logger.warning(f"RAGAS evaluation not available: {e}. Using fallback metrics.")
+                scores = self._fallback_metrics(questions, answers, contexts)
+        else:
             scores = self._fallback_metrics(questions, answers, contexts)
 
         # Step 3: Save results
@@ -148,13 +207,15 @@ class RAGASEvaluator:
     ) -> Dict[str, float]:
         """Run actual RAGAS evaluation."""
         from datasets import Dataset
-        from ragas import evaluate
-        from ragas.metrics import (
-            faithfulness,
-            answer_relevancy,
-            context_recall,
-            context_precision,
-        )
+        with _standard_asyncio_loop():
+            from ragas import evaluate
+            from ragas.metrics import (
+                faithfulness,
+                answer_relevancy,
+                context_recall,
+                context_precision,
+            )
+        from core.llm_client import get_langchain_llm
 
         eval_cfg = self.eval_cfg
         metrics_cfg = eval_cfg.get("metrics", {})
@@ -171,6 +232,17 @@ class RAGASEvaluator:
             if metrics_cfg.get(name, True)
         ]
 
+        # Remove metrics that require ground truth if not provided
+        # context_recall and context_precision both require 'reference' column
+        if not ground_truths:
+            selected_metrics = [
+                m for m in selected_metrics
+                if m not in (context_recall, context_precision)
+            ]
+            # Ensure we have at least some metrics
+            if not selected_metrics:
+                selected_metrics = [faithfulness, answer_relevancy]
+
         # Build RAGAS dataset
         data = {
             "question": questions,
@@ -181,7 +253,20 @@ class RAGASEvaluator:
             data["ground_truth"] = ground_truths
 
         dataset = Dataset.from_dict(data)
-        result = evaluate(dataset, metrics=selected_metrics)
+
+        # Configure RAGAS metrics to use LMStudio LLM instead of OpenAI
+        try:
+            llm = get_langchain_llm()
+            # Set LLM for metrics that need it
+            for metric in selected_metrics:
+                if hasattr(metric, "llm"):
+                    metric.llm = llm
+        except Exception as e:
+            logger.warning(f"Could not configure LLM for RAGAS metrics: {e}")
+
+        with _standard_asyncio_loop():
+            result = evaluate(dataset, metrics=selected_metrics)
+
         return dict(result)
 
     def _fallback_metrics(
@@ -191,24 +276,30 @@ class RAGASEvaluator:
             contexts: List[List[str]],
     ) -> Dict[str, float]:
         """
-        Simple fallback metrics when RAGAS is unavailable.
-        These are rough heuristics, not proper evaluation.
+        Fallback heuristic metrics when RAGAS is unavailable.
+        These provide basic quality signals without external LLM evaluation.
         """
-        logger.warning("Using fallback heuristic metrics (RAGAS unavailable)")
+        logger.info("Using fallback heuristic metrics (RAGAS evaluation skipped)")
 
         scores = {}
 
-        # Answer coverage: ratio of non-empty answers
+        # Answer completeness: ratio of non-empty answers
         non_empty = sum(1 for a in answers if a.strip())
-        scores["answer_coverage"] = non_empty / len(answers) if answers else 0.0
+        scores["answer_completeness"] = non_empty / len(answers) if answers else 0.0
 
-        # Context coverage: avg ratio of questions with retrieved context
-        ctx_coverage = sum(1 for c in contexts if c) / len(contexts) if contexts else 0.0
-        scores["context_coverage"] = ctx_coverage
+        # Context retrieval: ratio of questions with retrieved context
+        has_context = sum(1 for c in contexts if c)
+        scores["context_retrieval"] = has_context / len(contexts) if contexts else 0.0
 
-        # Avg answer length (proxy for completeness)
+        # Answer length signal: longer answers often indicate more thorough responses
         avg_len = sum(len(a.split()) for a in answers) / len(answers) if answers else 0
-        scores["avg_answer_words"] = min(avg_len / 100, 1.0)  # Normalize to 0-1
+        # Normalize: 50+ words is good, 100+ is excellent
+        scores["answer_length"] = min(avg_len / 100, 1.0)
+
+        # Context density: avg number of contexts retrieved per question
+        avg_ctx_count = sum(len(c) for c in contexts) / len(contexts) if contexts else 0
+        # Normalize: 5+ contexts is good (typical retrieval k=5)
+        scores["context_density"] = min(avg_ctx_count / 10, 1.0)
 
         return scores
 

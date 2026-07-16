@@ -158,23 +158,3 @@ def get_text_splitter(strategy: Optional[str] = None):
 
     else:
         raise ValueError(f"Unknown chunk strategy: {strat}")
-
-
-# ---------------------------------------------------------------------------
-# LlamaIndex Document Loading
-# ---------------------------------------------------------------------------
-
-def load_llamaindex_documents(source: str):
-    """
-    Load documents using LlamaIndex readers.
-
-    Returns:
-        List of LlamaIndex Document objects.
-    """
-    from llama_index.core import SimpleDirectoryReader
-
-    source_path = Path(source)
-    if source_path.is_dir():
-        return SimpleDirectoryReader(str(source_path)).load_data()
-    else:
-        return SimpleDirectoryReader(input_files=[str(source_path)]).load_data()

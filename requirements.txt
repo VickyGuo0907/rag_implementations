@@ -41,6 +41,7 @@ faiss-cpu>=1.8.0                  # Alternative: pip install faiss-gpu for GPU
 sentence-transformers>=3.0.0
 transformers>=4.40.0
 torch>=2.0.0                      # CPU-only: pip install torch --index-url https://download.pytorch.org/whl/cpu
+torchvision>=0.15.0               # Optional: suppresses transformers vision model import warnings
 
 # ---------------------------------------------------------------------------
 # Cross-Encoder Reranking (Advanced RAG, Reranking RAG)
@@ -86,6 +87,11 @@ umap-learn>=0.5.0                 # Dimensionality reduction
 pillow>=10.0.0
 # pytesseract>=0.3.0              # Optional: OCR for image text extraction
 # pdf2image>=1.16.0               # Optional: PDF image extraction
+
+# ---------------------------------------------------------------------------
+# Web UI
+# ---------------------------------------------------------------------------
+streamlit>=1.35.0
 
 # ---------------------------------------------------------------------------
 # Logging & Development

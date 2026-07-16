@@ -11,3 +11,9 @@ wheels/
 .venv
 data/vector_store
 
+# OS / editor cruft
+.DS_Store
+
+# Playwright MCP session artifacts
+.playwright-mcp/
+

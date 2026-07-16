@@ -9,7 +9,6 @@ Usage:
     llm = get_langchain_llm()
 """
 
-from typing import Optional
 from core.config_loader import ConfigLoader
 
 

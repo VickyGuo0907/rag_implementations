@@ -6,11 +6,11 @@ Provides a consistent interface across LangChain and LlamaIndex implementations.
 Includes built-in timing, logging, and result formatting.
 """
 
+import logging
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
-import time
-import logging
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -23,9 +23,9 @@ logger = logging.getLogger(__name__)
 class Document:
     """Represents a retrieved document chunk."""
     content: str
-    metadata: Dict[str, Any] = field(default_factory=dict)
-    score: Optional[float] = None
-    doc_id: Optional[str] = None
+    metadata: dict[str, Any] = field(default_factory=dict)
+    score: float | None = None
+    doc_id: str | None = None
 
     def __repr__(self) -> str:
         preview = self.content[:80].replace("\n", " ")
@@ -37,8 +37,8 @@ class RAGResult:
     """Standardized result object returned by all RAG implementations."""
     query: str
     answer: str
-    source_documents: List[Document] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    source_documents: list[Document] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     # Performance metrics (auto-populated by BaseRAG)
     latency_ms: float = 0.0
@@ -46,9 +46,9 @@ class RAGResult:
     framework: str = ""            # "langchain" or "llamaindex"
 
     # Intermediate steps (for inspection / debugging)
-    intermediate_steps: List[Dict[str, Any]] = field(default_factory=list)
+    intermediate_steps: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "query": self.query,
             "answer": self.answer,
@@ -102,7 +102,7 @@ class BaseRAG(ABC):
     TECHNIQUE_NAME: str = "base"      # Override in each subclass
     FRAMEWORK: str = "base"           # "langchain" or "llamaindex"
 
-    def __init__(self, config: Dict[str, Any]):
+    def __init__(self, config: dict[str, Any]):
         """
         Args:
             config: Full config dict (from ConfigLoader) or technique-specific subset.
@@ -122,7 +122,7 @@ class BaseRAG(ABC):
         ...
 
     @abstractmethod
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """
         Chunk, embed, and store documents in the vector store.
 
@@ -165,7 +165,7 @@ class BaseRAG(ABC):
         )
         return result
 
-    def get_info(self) -> Dict[str, str]:
+    def get_info(self) -> dict[str, str]:
         """Return metadata about this RAG implementation."""
         return {
             "technique": self.TECHNIQUE_NAME,
@@ -175,4 +175,4 @@ class BaseRAG(ABC):
         }
 
     def __repr__(self) -> str:
-        return f"{self.__class__.__name__}(technique={self.TECHNIQUE_NAME}, framework={self.FRAMEWORK})"
+        return f"{self.__class__.__name__}(technique={self.TECHNIQUE_NAME}, framework={self.FRAMEWORK})"  # noqa: E501

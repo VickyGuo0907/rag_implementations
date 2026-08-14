@@ -18,17 +18,16 @@ Each strategy is independently toggleable via config.yaml
 Reference: https://github.com/NirDiamant/RAG_Techniques
 """
 
-from typing import Dict, List, Optional
 import logging
 
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_langchain_llm
+from core.document_loader import get_text_splitter, load_texts
 from core.embeddings import get_langchain_embeddings
-from core.document_loader import load_texts, get_text_splitter
+from core.llm_client import get_langchain_llm
 from core.vector_store import build_langchain_vector_store
 
 logger = logging.getLogger(__name__)
@@ -111,9 +110,9 @@ class QueryTransformRAGLangChain(BaseRAG):
         self.num_queries = tech_cfg.get("num_queries", 3)
         self.vector_store = None
 
-        logger.info(f"[QueryTransform/LC] strategies={self.strategies}, num_queries={self.num_queries}")
+        logger.info(f"[QueryTransform/LC] strategies={self.strategies}, num_queries={self.num_queries}")  # noqa: E501
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """Chunk, embed, and store documents (standard indexing, unchanged by query transforms)."""
         logger.info(f"[QueryTransform/LC] Indexing {len(documents)} documents...")
 
@@ -139,15 +138,15 @@ class QueryTransformRAGLangChain(BaseRAG):
         logger.debug(f"[QueryTransform/LC] Step-back query: {step_back_query}")
         return step_back_query
 
-    def _decompose_query(self, question: str) -> List[str]:
+    def _decompose_query(self, question: str) -> list[str]:
         """Break the query into simpler sub-questions."""
         chain = DECOMPOSE_PROMPT | self.llm | StrOutputParser()
         result = chain.invoke({"question": question, "num_subquestions": self.num_queries})
-        sub_questions = [line.strip("- ").strip() for line in result.strip().split("\n") if line.strip()]
+        sub_questions = [line.strip("- ").strip() for line in result.strip().split("\n") if line.strip()]  # noqa: E501
         logger.debug(f"[QueryTransform/LC] Sub-questions: {sub_questions}")
         return sub_questions
 
-    def _generate_multi_query(self, question: str) -> List[str]:
+    def _generate_multi_query(self, question: str) -> list[str]:
         """Generate N differently-worded variants of the query."""
         chain = MULTI_QUERY_PROMPT | self.llm | StrOutputParser()
         result = chain.invoke({"question": question, "num_queries": self.num_queries})
@@ -155,7 +154,7 @@ class QueryTransformRAGLangChain(BaseRAG):
         logger.debug(f"[QueryTransform/LC] Multi-query variants: {variants}")
         return variants
 
-    def _retrieve_deduplicated(self, queries: List[str]) -> List:
+    def _retrieve_deduplicated(self, queries: list[str]) -> list:
         """Retrieve top-K docs for each query, merging and deduplicating by content."""
         retriever = self.vector_store.as_retriever(search_kwargs={"k": self.top_k})
 
@@ -198,7 +197,7 @@ class QueryTransformRAGLangChain(BaseRAG):
             "num_queries": len(all_queries),
             "num_docs": len(retrieved_docs),
         })
-        logger.debug(f"[QueryTransform/LC] {len(all_queries)} queries → {len(retrieved_docs)} unique docs")
+        logger.debug(f"[QueryTransform/LC] {len(all_queries)} queries → {len(retrieved_docs)} unique docs")  # noqa: E501
 
         context = "\n\n---\n\n".join(doc.page_content for doc in retrieved_docs)
         answer_chain = ANSWER_PROMPT | self.llm | StrOutputParser()
@@ -225,12 +224,12 @@ if __name__ == "__main__":
     sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
 
     docs = [
-        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances.",
-        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories.",
-        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers.",
+        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances.",  # noqa: E501
+        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories.",  # noqa: E501
+        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers.",  # noqa: E501
     ]
 
     rag = QueryTransformRAGLangChain(config=ConfigLoader.get()._config)
     rag.index(docs)
-    result = rag.query("How does entanglement help quantum computers and what does Bell's theorem have to do with it?")
+    result = rag.query("How does entanglement help quantum computers and what does Bell's theorem have to do with it?")  # noqa: E501
     result.print_summary()

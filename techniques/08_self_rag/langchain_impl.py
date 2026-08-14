@@ -20,25 +20,24 @@ Paper: "Self-RAG: Learning to Retrieve, Generate, and Critique through
 Self-Reflection" (Asai et al., 2023) — https://arxiv.org/abs/2310.11511
 """
 
-from typing import Dict, List, Optional, Tuple
 import logging
 import re
 
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_langchain_llm
+from core.document_loader import get_text_splitter, load_texts
 from core.embeddings import get_langchain_embeddings
-from core.document_loader import load_texts, get_text_splitter
+from core.llm_client import get_langchain_llm
 from core.vector_store import build_langchain_vector_store
 
 logger = logging.getLogger(__name__)
 
 
 def _parse_score(text: str, default: float = 0.5) -> float:
-    """Extract a single 0.0-1.0 score from an LLM response, clamped and defaulted on parse failure."""
+    """Extract a single 0.0-1.0 score from an LLM response, clamped and defaulted on parse failure."""  # noqa: E501
     match = re.search(r"(\d*\.?\d+)", text)
     if not match:
         return default
@@ -48,7 +47,7 @@ def _parse_score(text: str, default: float = 0.5) -> float:
         return default
 
 
-def _parse_scores(text: str, count: int, default: float = 0.5) -> List[float]:
+def _parse_scores(text: str, count: int, default: float = 0.5) -> list[float]:
     """Extract one 0.0-1.0 score per line, padding/truncating to the expected count."""
     lines = [line for line in text.strip().split("\n") if line.strip()]
     scores = [_parse_score(line, default) for line in lines]
@@ -164,7 +163,7 @@ class SelfRAGLangChain(BaseRAG):
             f"support_threshold={self.support_threshold}"
         )
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """Chunk, embed, and store documents in the configured vector store."""
         logger.info(f"[SelfRAG/LC] Indexing {len(documents)} documents...")
 
@@ -189,22 +188,22 @@ class SelfRAGLangChain(BaseRAG):
         result = chain.invoke({"question": question})
         return _parse_score(result, default=1.0)  # default to retrieving if the model is unclear
 
-    def _retrieve(self, query: str) -> List:
+    def _retrieve(self, query: str) -> list:
         retriever = self.vector_store.as_retriever(search_kwargs={"k": self.top_k})
         return retriever.invoke(query)
 
-    def _grade_relevance(self, question: str, candidates: List) -> Tuple[List, List[float]]:
-        """Batch-score every candidate's relevance in one LLM call; keep only those above threshold."""
+    def _grade_relevance(self, question: str, candidates: list) -> tuple[list, list[float]]:
+        """Batch-score every candidate's relevance in one LLM call; keep only those above threshold."""  # noqa: E501
         if not candidates:
             return [], []
-        passages_text = "\n\n".join(f"[{i + 1}] {doc.page_content}" for i, doc in enumerate(candidates))
+        passages_text = "\n\n".join(f"[{i + 1}] {doc.page_content}" for i, doc in enumerate(candidates))  # noqa: E501
         chain = RELEVANCE_GRADE_PROMPT | self.llm | StrOutputParser()
         result = chain.invoke({"question": question, "passages": passages_text})
         scores = _parse_scores(result, count=len(candidates))
-        relevant = [doc for doc, score in zip(candidates, scores) if score >= self.relevance_threshold]
+        relevant = [doc for doc, score in zip(candidates, scores, strict=True) if score >= self.relevance_threshold]  # noqa: E501
         return relevant, scores
 
-    def _generate_with_context(self, question: str, docs: List) -> str:
+    def _generate_with_context(self, question: str, docs: list) -> str:
         context = "\n\n---\n\n".join(doc.page_content for doc in docs)
         chain = ANSWER_PROMPT | self.llm | StrOutputParser()
         return chain.invoke({"context": context, "question": question})
@@ -213,7 +212,7 @@ class SelfRAGLangChain(BaseRAG):
         chain = NO_RETRIEVAL_PROMPT | self.llm | StrOutputParser()
         return chain.invoke({"question": question})
 
-    def _grade_support(self, question: str, docs: List, answer: str) -> float:
+    def _grade_support(self, question: str, docs: list, answer: str) -> float:
         """Score (0-1) how well the answer is grounded in the given context."""
         context = "\n\n---\n\n".join(doc.page_content for doc in docs)
         chain = SUPPORT_GRADE_PROMPT | self.llm | StrOutputParser()
@@ -239,7 +238,7 @@ class SelfRAGLangChain(BaseRAG):
             "retrieval_necessity_score": retrieval_score,
             "needs_retrieval": needs_retrieval,
         })
-        logger.debug(f"[SelfRAG/LC] retrieval_necessity={retrieval_score:.2f} → needs_retrieval={needs_retrieval}")
+        logger.debug(f"[SelfRAG/LC] retrieval_necessity={retrieval_score:.2f} → needs_retrieval={needs_retrieval}")  # noqa: E501
 
         if not needs_retrieval:
             answer = self._generate_without_retrieval(question)
@@ -305,15 +304,15 @@ if __name__ == "__main__":
     sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
 
     docs = [
-        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances.",
-        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories.",
-        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers.",
+        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances.",  # noqa: E501
+        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories.",  # noqa: E501
+        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers.",  # noqa: E501
     ]
 
     rag = SelfRAGLangChain(config=ConfigLoader.get()._config)
     rag.index(docs)
 
-    result = rag.query("How does entanglement help quantum computers and what does Bell's theorem have to do with it?")
+    result = rag.query("How does entanglement help quantum computers and what does Bell's theorem have to do with it?")  # noqa: E501
     result.print_summary()
 
     # A question that shouldn't need retrieval at all

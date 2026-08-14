@@ -7,13 +7,12 @@ LlamaIndex version of Advanced RAG using built-in transformations:
   - SentenceWindowNodeParser for context-aware chunking
 """
 
-from typing import Dict, List, Optional
 import logging
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_llamaindex_llm
 from core.embeddings import get_llamaindex_embeddings
+from core.llm_client import get_llamaindex_llm
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +56,7 @@ class AdvancedRAGLlamaIndex(BaseRAG):
 
         logger.info("[AdvancedRAG/LI] Initialized with SentenceWindowNodeParser")
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """Build VectorStoreIndex with sentence-window nodes."""
         from llama_index.core import VectorStoreIndex
         from llama_index.core.schema import Document as LIDocument
@@ -65,7 +64,7 @@ class AdvancedRAGLlamaIndex(BaseRAG):
         logger.info(f"[AdvancedRAG/LI] Indexing {len(documents)} documents...")
 
         metas = metadatas or [{}] * len(documents)
-        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas)]
+        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas, strict=True)]
 
         self.vector_index = VectorStoreIndex.from_documents(
             li_docs,

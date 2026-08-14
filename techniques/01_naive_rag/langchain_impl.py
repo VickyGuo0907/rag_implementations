@@ -11,18 +11,17 @@ This is the starting point for all RAG systems.
 Reference: https://github.com/NirDiamant/RAG_Techniques/blob/main/all_rag_techniques/simple_rag.ipynb
 """
 
-from typing import Dict, List, Optional
 import logging
 
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.runnables import RunnablePassthrough
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_langchain_llm
+from core.document_loader import get_text_splitter, load_texts
 from core.embeddings import get_langchain_embeddings
-from core.document_loader import load_texts, get_text_splitter
+from core.llm_client import get_langchain_llm
 from core.vector_store import build_langchain_vector_store
 
 logger = logging.getLogger(__name__)
@@ -32,15 +31,14 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 RAG_PROMPT = ChatPromptTemplate.from_template(
-    """
-    You are a helpful assistant. Answer the user's question based ONLY on the provided context.
-    If the answer is not in the context, say "I don't have enough information to answer this question."
-    Context:
-    {context}
-
-    Question:
-    {question}
-    """
+    "\n    You are a helpful assistant. Answer the user's question based ONLY on the provided context.\n"  # noqa: E501
+    "    If the answer is not in the context, say \"I don't have enough information to answer this question.\"\n"  # noqa: E501
+    "    Context:\n"
+    "    {context}\n"
+    "\n"
+    "    Question:\n"
+    "    {question}\n"
+    "    "
 )
 
 
@@ -80,7 +78,7 @@ class NaiveRAGLangChain(BaseRAG):
 
         logger.info(f"[NaiveRAG/LC] Initialized | model={cfg.lmstudio.get('model')}")
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """
         Chunk, embed, and store documents in the configured vector store.
 

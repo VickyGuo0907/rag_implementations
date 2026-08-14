@@ -10,14 +10,13 @@ embedded and searched. Retrieval hits map back to their parent via metadata,
 and the (deduplicated) parent text is what actually grounds the answer.
 """
 
-from typing import Dict, List, Optional
 import logging
 import re
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_llamaindex_llm
 from core.embeddings import get_llamaindex_embeddings
+from core.llm_client import get_llamaindex_llm
 
 logger = logging.getLogger(__name__)
 
@@ -73,7 +72,7 @@ class ParentDocumentRAGLlamaIndex(BaseRAG):
         self.child_chunk_overlap = doc_cfg.get("chunk_overlap", 50)
         self.top_k = cfg.retrieval.get("top_k", 5)
 
-        self.parent_lookup: Dict[str, str] = {}
+        self.parent_lookup: dict[str, str] = {}
         self.vector_index = None
         self.retriever = None
 
@@ -82,16 +81,16 @@ class ParentDocumentRAGLlamaIndex(BaseRAG):
             f"child_chunk_size={self.child_chunk_size}"
         )
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """Split into parent chunks, then child chunks; embed only the children."""
         from llama_index.core import VectorStoreIndex
-        from llama_index.core.schema import Document as LIDocument
         from llama_index.core.node_parser import SentenceSplitter
+        from llama_index.core.schema import Document as LIDocument
 
         logger.info(f"[ParentDoc/LI] Indexing {len(documents)} documents...")
 
         metas = metadatas or [{}] * len(documents)
-        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas)]
+        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas, strict=True)]
 
         parent_splitter = SentenceSplitter(chunk_size=self.parent_chunk_size, chunk_overlap=0)
         child_splitter = SentenceSplitter(
@@ -116,10 +115,10 @@ class ParentDocumentRAGLlamaIndex(BaseRAG):
         self.retriever = self.vector_index.as_retriever(similarity_top_k=self.top_k)
 
         self._is_indexed = True
-        logger.info(f"[ParentDoc/LI] Indexed {len(parent_nodes)} parents → {len(child_nodes)} child chunks ✓")
+        logger.info(f"[ParentDoc/LI] Indexed {len(parent_nodes)} parents → {len(child_nodes)} child chunks ✓")  # noqa: E501
 
     def _query(self, question: str) -> RAGResult:
-        """Retrieve by child-chunk similarity, but return the (deduplicated) parent chunks for context."""
+        """Retrieve by child-chunk similarity, but return the (deduplicated) parent chunks for context."""  # noqa: E501
         if not self.retriever:
             raise RuntimeError("Call index() before querying.")
 

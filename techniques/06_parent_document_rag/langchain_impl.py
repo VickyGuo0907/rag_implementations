@@ -15,17 +15,16 @@ child embeddings) paired with a docstore (holding parent documents).
 Reference: https://github.com/NirDiamant/RAG_Techniques
 """
 
-from typing import Dict, List, Optional
 import logging
 
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_langchain_llm
-from core.embeddings import get_langchain_embeddings
 from core.document_loader import load_texts
+from core.embeddings import get_langchain_embeddings
+from core.llm_client import get_langchain_llm
 from core.vector_store import get_langchain_vector_store
 
 logger = logging.getLogger(__name__)
@@ -81,7 +80,7 @@ class ParentDocumentRAGLangChain(BaseRAG):
             f"child_chunk_size={self.child_chunk_size}"
         )
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """Build a ParentDocumentRetriever: embed child chunks, store parent chunks for return."""
         from langchain_classic.retrievers import ParentDocumentRetriever
         from langchain_core.stores import InMemoryStore
@@ -91,7 +90,7 @@ class ParentDocumentRAGLangChain(BaseRAG):
 
         lc_docs = load_texts(documents, metadatas)
 
-        parent_splitter = RecursiveCharacterTextSplitter(chunk_size=self.parent_chunk_size, chunk_overlap=0)
+        parent_splitter = RecursiveCharacterTextSplitter(chunk_size=self.parent_chunk_size, chunk_overlap=0)  # noqa: E501
         child_splitter = RecursiveCharacterTextSplitter(
             chunk_size=self.child_chunk_size,
             chunk_overlap=self.child_chunk_overlap,
@@ -146,13 +145,13 @@ if __name__ == "__main__":
     sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
 
     docs = [
-        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances. "
-        "This correlation persists regardless of the distance separating the particles, a property Einstein famously called 'spooky action at a distance.' "
-        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories, providing a rigorous mathematical foundation for the non-classical nature of entanglement. "
-        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers, using entangled qubits to represent and manipulate exponentially large state spaces.",
+        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances. "  # noqa: E501
+        "This correlation persists regardless of the distance separating the particles, a property Einstein famously called 'spooky action at a distance.' "  # noqa: E501
+        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories, providing a rigorous mathematical foundation for the non-classical nature of entanglement. "  # noqa: E501
+        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers, using entangled qubits to represent and manipulate exponentially large state spaces.",  # noqa: E501
     ]
 
     rag = ParentDocumentRAGLangChain(config=ConfigLoader.get()._config)
     rag.index(docs)
-    result = rag.query("How does entanglement help quantum computers and what does Bell's theorem have to do with it?")
+    result = rag.query("How does entanglement help quantum computers and what does Bell's theorem have to do with it?")  # noqa: E501
     result.print_summary()

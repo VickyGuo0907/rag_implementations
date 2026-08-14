@@ -4,7 +4,7 @@ Unit tests for the shared document loading and text-splitting helpers.
 
 import pytest
 
-from core.document_loader import load_texts, load_documents
+from core.document_loader import load_documents, load_texts
 
 
 def test_load_texts_wraps_strings():

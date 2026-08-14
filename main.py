@@ -16,10 +16,9 @@ Usage:
 """
 
 import argparse
-import sys
 import logging
+import sys
 from pathlib import Path
-from typing import Optional
 
 # Ensure project root is in path
 sys.path.insert(0, str(Path(__file__).parent))
@@ -28,10 +27,9 @@ from core.config_loader import ConfigLoader
 from core.document_loader import load_documents
 from techniques.registry import (
     TECHNIQUES,
-    get_techniques,
     get_implementations,
-    load_class,
     is_registered,
+    load_class,
 )
 
 
@@ -68,7 +66,7 @@ def cmd_run(args):
         run_evaluation(rag)
 
 
-def initialize_rag(technique: str, framework: str, config_path: Optional[str]):
+def initialize_rag(technique: str, framework: str, config_path: str | None):
     """Initialize and return RAG instance."""
     if not is_registered(technique, framework):
         print(f"\n❌ No implemented class for: technique='{technique}', framework='{framework}'")
@@ -198,7 +196,7 @@ def cmd_info(args):
     print(f"   Complexity: {_COMPLEXITY_ICONS.get(meta['complexity'], '⭐' * meta['complexity'])}")
     print(f"   Latency: {_LATENCY_ICONS.get(meta['latency'], meta['latency'])}")
     print(f"   Accuracy: {_ACCURACY_ICONS.get(meta['accuracy'], meta['accuracy'])}")
-    print(f"\n💻 Available Implementations:")
+    print("\n💻 Available Implementations:")
     print(f"   - LangChain:  python main.py run --technique {technique} --framework langchain")
     print(f"   - LlamaIndex: python main.py run --technique {technique} --framework llamaindex")
     print()
@@ -233,7 +231,7 @@ def cmd_config(args):
     config_path = Path("config/config.yaml")
 
     if args.action == "show":
-        cfg = ConfigLoader.get()
+        ConfigLoader.get()
         print("\n⚙️  Current Configuration:")
         print(f"   Config file: {config_path.resolve()}")
         with open(config_path) as f:
@@ -241,7 +239,7 @@ def cmd_config(args):
         print(yaml.dump(config_content, default_flow_style=False, indent=2))
     elif args.action == "validate":
         try:
-            cfg = ConfigLoader.get()
+            ConfigLoader.get()
             print("\n✅ Configuration is valid!")
             print(f"   Config file: {config_path.resolve()}")
         except Exception as e:

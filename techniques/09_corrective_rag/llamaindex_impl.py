@@ -8,15 +8,14 @@ implemented with direct LLM `.complete()` calls for parity with the
 LangChain implementation.
 """
 
-from typing import Dict, List, Optional
 import logging
 import os
 import re
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_llamaindex_llm
 from core.embeddings import get_llamaindex_embeddings
+from core.llm_client import get_llamaindex_llm
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +37,7 @@ def _parse_score(text: str, default: float = 0.5) -> float:
         return default
 
 
-def _parse_scores(text: str, count: int, default: float = 0.5) -> List[float]:
+def _parse_scores(text: str, count: int, default: float = 0.5) -> list[float]:
     lines = [line for line in _strip_thinking(text).split("\n") if line.strip()]
     scores = [_parse_score(line, default) for line in lines]
     while len(scores) < count:
@@ -46,9 +45,9 @@ def _parse_scores(text: str, count: int, default: float = 0.5) -> List[float]:
     return scores[:count]
 
 
-RELEVANCE_GRADE_PROMPT = """For each numbered document below, judge how relevant it is to answering the question. \
-Respond with ONLY the scores, one per line, in the same order, each between 0.0 \
-(not relevant) and 1.0 (highly relevant). No other text.
+RELEVANCE_GRADE_PROMPT = """For each numbered document below, judge how relevant it is \
+to answering the question. Respond with ONLY the scores, one per line, in the same \
+order, each between 0.0 (not relevant) and 1.0 (highly relevant). No other text.
 
 Question: {question}
 
@@ -57,10 +56,10 @@ Documents:
 
 Relevance scores (one per line, in order):"""
 
-REFINEMENT_PROMPT = """Extract ONLY the sentences from the following documents that are directly relevant \
-to answering the question. Discard irrelevant sentences and filler. Preserve the \
-original wording of the sentences you keep. Return the relevant sentences as a \
-bulleted list, nothing else.
+REFINEMENT_PROMPT = """Extract ONLY the sentences from the following documents that are \
+directly relevant to answering the question. Discard irrelevant sentences and filler. \
+Preserve the original wording of the sentences you keep. Return the relevant sentences \
+as a bulleted list, nothing else.
 
 Question: {question}
 
@@ -144,10 +143,10 @@ class CorrectiveRAGLlamaIndex(BaseRAG):
             os.environ.setdefault("TAVILY_API_KEY", api_key)
             return TavilySearchResults(max_results=3)
         except Exception as e:
-            logger.warning(f"[CorrectiveRAG/LI] Web search unavailable: {e}. Falling back to parametric knowledge.")
+            logger.warning(f"[CorrectiveRAG/LI] Web search unavailable: {e}. Falling back to parametric knowledge.")  # noqa: E501
             return None
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """Build a VectorStoreIndex from raw text strings."""
         from llama_index.core import VectorStoreIndex
         from llama_index.core.schema import Document as LIDocument
@@ -155,7 +154,7 @@ class CorrectiveRAGLlamaIndex(BaseRAG):
         logger.info(f"[CorrectiveRAG/LI] Indexing {len(documents)} documents...")
 
         metas = metadatas or [{}] * len(documents)
-        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas)]
+        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas, strict=True)]
 
         self.vector_index = VectorStoreIndex.from_documents(li_docs, show_progress=True)
         self.retriever = self.vector_index.as_retriever(similarity_top_k=self.top_k)
@@ -167,15 +166,15 @@ class CorrectiveRAGLlamaIndex(BaseRAG):
     # Corrective steps
     # ------------------------------------------------------------------
 
-    def _grade_relevance(self, question: str, candidates: List) -> List[float]:
+    def _grade_relevance(self, question: str, candidates: list) -> list[float]:
         if not candidates:
             return []
-        docs_text = "\n\n".join(f"[{i + 1}] {node.get_content()}" for i, node in enumerate(candidates))
-        response = self.llm.complete(RELEVANCE_GRADE_PROMPT.format(question=question, documents=docs_text))
+        docs_text = "\n\n".join(f"[{i + 1}] {node.get_content()}" for i, node in enumerate(candidates))  # noqa: E501
+        response = self.llm.complete(RELEVANCE_GRADE_PROMPT.format(question=question, documents=docs_text))  # noqa: E501
         return _parse_scores(response.text, count=len(candidates))
 
     @staticmethod
-    def _classify_action(scores: List[float], threshold: float) -> str:
+    def _classify_action(scores: list[float], threshold: float) -> str:
         if not scores:
             return "incorrect"
         passing = sum(1 for s in scores if s >= threshold)
@@ -185,15 +184,15 @@ class CorrectiveRAGLlamaIndex(BaseRAG):
             return "incorrect"
         return "ambiguous"
 
-    def _refine_knowledge(self, question: str, nodes: List) -> List[str]:
+    def _refine_knowledge(self, question: str, nodes: list) -> list[str]:
         if not nodes:
             return []
         docs_text = "\n\n".join(f"[{i + 1}] {node.get_content()}" for i, node in enumerate(nodes))
-        response = self.llm.complete(REFINEMENT_PROMPT.format(question=question, documents=docs_text))
+        response = self.llm.complete(REFINEMENT_PROMPT.format(question=question, documents=docs_text))  # noqa: E501
         text = _strip_thinking(response.text)
         return [text] if text else []
 
-    def _web_search(self, question: str) -> List[str]:
+    def _web_search(self, question: str) -> list[str]:
         if not self.web_search_tool:
             return []
         try:
@@ -209,7 +208,7 @@ class CorrectiveRAGLlamaIndex(BaseRAG):
             logger.warning(f"[CorrectiveRAG/LI] Web search call failed: {e}")
             return []
 
-    def _generate_with_context(self, question: str, context_blocks: List[str]) -> str:
+    def _generate_with_context(self, question: str, context_blocks: list[str]) -> str:
         context = "\n\n---\n\n".join(context_blocks)
         response = self.llm.complete(ANSWER_PROMPT.format(context=context, question=question))
         return _strip_thinking(response.text)
@@ -226,7 +225,7 @@ class CorrectiveRAGLlamaIndex(BaseRAG):
         candidates = self.retriever.retrieve(question)
         scores = self._grade_relevance(question, candidates)
         action = self._classify_action(scores, self.relevance_threshold)
-        correct_nodes = [node for node, score in zip(candidates, scores) if score >= self.relevance_threshold]
+        correct_nodes = [node for node, score in zip(candidates, scores, strict=True) if score >= self.relevance_threshold]  # noqa: E501
 
         intermediate_steps = [{
             "step": "relevance_grading",
@@ -234,9 +233,9 @@ class CorrectiveRAGLlamaIndex(BaseRAG):
             "scores": scores,
             "action": action,
         }]
-        logger.debug(f"[CorrectiveRAG/LI] action={action}, {len(correct_nodes)}/{len(candidates)} nodes relevant")
+        logger.debug(f"[CorrectiveRAG/LI] action={action}, {len(correct_nodes)}/{len(candidates)} nodes relevant")  # noqa: E501
 
-        web_results: List[str] = []
+        web_results: list[str] = []
         if action in ("incorrect", "ambiguous"):
             web_results = self._web_search(question)
             intermediate_steps.append({
@@ -245,18 +244,18 @@ class CorrectiveRAGLlamaIndex(BaseRAG):
                 "num_results": len(web_results),
             })
 
-        context_blocks: List[str] = []
+        context_blocks: list[str] = []
         if action in ("correct", "ambiguous") and correct_nodes:
             refined = self._refine_knowledge(question, correct_nodes)
             context_blocks.extend(refined)
-            intermediate_steps.append({"step": "knowledge_refinement", "num_source_nodes": len(correct_nodes)})
+            intermediate_steps.append({"step": "knowledge_refinement", "num_source_nodes": len(correct_nodes)})  # noqa: E501
         context_blocks.extend(web_results)
 
         if context_blocks:
             answer = self._generate_with_context(question, context_blocks)
         else:
             answer = self._generate_without_context(question)
-            intermediate_steps.append({"step": "fallback_generation", "reason": "no usable internal or external context"})
+            intermediate_steps.append({"step": "fallback_generation", "reason": "no usable internal or external context"})  # noqa: E501
 
         source_documents = [
             Document(content=node.get_content(), metadata=node.metadata, score=node.score)

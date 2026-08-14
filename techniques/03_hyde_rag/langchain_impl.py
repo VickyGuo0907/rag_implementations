@@ -11,17 +11,16 @@ Paper: "Precise Zero-Shot Dense Retrieval without Relevance Labels" (Gao et al. 
 Reference: https://github.com/NirDiamant/RAG_Techniques/blob/main/all_rag_techniques/HyDe_RAG.ipynb
 """
 
-from typing import Dict, List, Optional
 import logging
 
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_langchain_llm
+from core.document_loader import get_text_splitter, load_texts
 from core.embeddings import get_langchain_embeddings
-from core.document_loader import load_texts, get_text_splitter
+from core.llm_client import get_langchain_llm
 from core.vector_store import build_langchain_vector_store
 
 logger = logging.getLogger(__name__)
@@ -81,7 +80,7 @@ class HyDERAGLangChain(BaseRAG):
 
         logger.info(f"[HyDE/LC] num_hypothetical={self.num_hypothetical}")
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """Standard indexing — real documents are stored as-is."""
         lc_docs = load_texts(documents, metadatas)
         chunks = self.text_splitter.split_documents(lc_docs)

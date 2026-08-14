@@ -3,7 +3,7 @@ Unit tests for the shared RAGResult / Document data models and BaseRAG
 interface contract.
 """
 
-from core.base_rag import RAGResult, Document, BaseRAG
+from core.base_rag import BaseRAG, Document, RAGResult
 
 
 def make_result():

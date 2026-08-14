@@ -17,18 +17,16 @@ POST-RETRIEVAL:
 Reference: https://github.com/NirDiamant/RAG_Techniques
 """
 
-from typing import Dict, List, Optional
 import logging
 
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
-from langchain_core.runnables import RunnablePassthrough, RunnableLambda
+from langchain_core.prompts import ChatPromptTemplate
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_langchain_llm
+from core.document_loader import get_text_splitter, load_texts
 from core.embeddings import get_langchain_embeddings
-from core.document_loader import load_texts, get_text_splitter
+from core.llm_client import get_langchain_llm
 from core.vector_store import build_langchain_vector_store
 
 logger = logging.getLogger(__name__)
@@ -102,7 +100,7 @@ class AdvancedRAGLangChain(BaseRAG):
         self.enable_reranking = tech_cfg.get("reranking", True)
         self.enable_compression = tech_cfg.get("compression", True)
         self.enable_query_rewriting = tech_cfg.get("query_rewriting", True)
-        self.num_queries = cfg.get_value("rag_techniques", "query_transform_rag", "num_queries", default=3)
+        self.num_queries = cfg.get_value("rag_techniques", "query_transform_rag", "num_queries", default=3)  # noqa: E501
 
         self.reranker = None
         self.retriever = None
@@ -112,7 +110,7 @@ class AdvancedRAGLangChain(BaseRAG):
                     f"compression={self.enable_compression}, "
                     f"query_rewriting={self.enable_query_rewriting}")
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """Chunk, embed, and store documents. Build reranker and retriever."""
         logger.info(f"[AdvancedRAG/LC] Indexing {len(documents)} documents...")
 
@@ -141,7 +139,7 @@ class AdvancedRAGLangChain(BaseRAG):
                 llm=self.llm,
             )
         except (ImportError, ModuleNotFoundError):
-            logger.warning("[AdvancedRAG/LC] MultiQueryRetriever not available, using base retriever")
+            logger.warning("[AdvancedRAG/LC] MultiQueryRetriever not available, using base retriever")  # noqa: E501
             self.retriever = base_retriever
 
         # Build cross-encoder reranker (local, no API needed)
@@ -182,7 +180,7 @@ class AdvancedRAGLangChain(BaseRAG):
         logger.debug(f"[AdvancedRAG/LC] Rewritten query: {rewritten}")
         return rewritten.strip()
 
-    def _retrieve_and_rerank(self, query: str) -> List:
+    def _retrieve_and_rerank(self, query: str) -> list:
         """Full retrieval pipeline: multi-query → retrieve → rerank → compress."""
         # Step 1: Multi-query retrieval (auto-generates query variants)
         docs = self.retriever.invoke(query)

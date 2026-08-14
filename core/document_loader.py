@@ -11,9 +11,9 @@ Usage:
 """
 
 from pathlib import Path
-from typing import List, Optional, Dict, Any
-from core.config_loader import ConfigLoader
+from typing import Any
 
+from core.config_loader import ConfigLoader
 
 # ---------------------------------------------------------------------------
 # Document Loading
@@ -22,7 +22,10 @@ from core.config_loader import ConfigLoader
 def _get_loader_for_file(file_path: str):
     """Return instantiated loader based on file extension."""
     from langchain_community.document_loaders import (
-        TextLoader, PyPDFLoader, CSVLoader, Docx2txtLoader
+        CSVLoader,
+        Docx2txtLoader,
+        PyPDFLoader,
+        TextLoader,
     )
 
     suffix = Path(file_path).suffix.lower()
@@ -38,7 +41,7 @@ def _get_loader_for_file(file_path: str):
         return TextLoader(file_path)
 
 
-def load_documents(source: str, glob: str = "**/*.*") -> List[Any]:
+def load_documents(source: str, glob: str = "**/*.*") -> list[Any]:
     """
     Load documents from a file, directory, or URL using LangChain loaders.
 
@@ -88,7 +91,7 @@ def load_documents(source: str, glob: str = "**/*.*") -> List[Any]:
         return TextLoader(str(source_path)).load()
 
 
-def load_texts(texts: List[str], metadatas: Optional[List[Dict]] = None) -> List[Any]:
+def load_texts(texts: list[str], metadatas: list[dict] | None = None) -> list[Any]:
     """
     Wrap raw strings in LangChain Document objects.
 
@@ -99,14 +102,14 @@ def load_texts(texts: List[str], metadatas: Optional[List[Dict]] = None) -> List
     from langchain_core.documents import Document as LCDocument
     if metadatas is None:
         metadatas = [{} for _ in texts]
-    return [LCDocument(page_content=t, metadata=m) for t, m in zip(texts, metadatas)]
+    return [LCDocument(page_content=t, metadata=m) for t, m in zip(texts, metadatas, strict=True)]
 
 
 # ---------------------------------------------------------------------------
 # Text Splitters
 # ---------------------------------------------------------------------------
 
-def get_text_splitter(strategy: Optional[str] = None):
+def get_text_splitter(strategy: str | None = None):
     """
     Returns a LangChain text splitter based on config strategy.
 
@@ -142,6 +145,7 @@ def get_text_splitter(strategy: Optional[str] = None):
 
     elif strat == "semantic":
         from langchain_experimental.text_splitter import SemanticChunker
+
         from core.embeddings import get_langchain_embeddings
         sem_cfg = doc_cfg.get("semantic", {})
         return SemanticChunker(

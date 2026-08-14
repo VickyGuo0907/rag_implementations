@@ -5,13 +5,12 @@ Uses LlamaIndex's built-in HyDEQueryTransform for a clean, pipeline-native
 implementation of Hypothetical Document Embeddings.
 """
 
-from typing import Dict, List, Optional
 import logging
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_llamaindex_llm
 from core.embeddings import get_llamaindex_embeddings
+from core.llm_client import get_llamaindex_llm
 
 logger = logging.getLogger(__name__)
 
@@ -40,12 +39,12 @@ class HyDERAGLlamaIndex(BaseRAG):
         self.vector_index = None
         self.query_engine = None
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         from llama_index.core import VectorStoreIndex
         from llama_index.core.schema import Document as LIDocument
 
         metas = metadatas or [{}] * len(documents)
-        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas)]
+        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas, strict=True)]
         self.vector_index = VectorStoreIndex.from_documents(li_docs, show_progress=True)
         self._is_indexed = True
         logger.info(f"[HyDE/LI] Indexed {len(documents)} documents ✓")

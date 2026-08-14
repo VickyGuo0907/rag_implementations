@@ -14,17 +14,16 @@ used for the initial retrieval pass.
 Reference: https://github.com/NirDiamant/RAG_Techniques
 """
 
-from typing import Dict, List, Optional
 import logging
 
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_langchain_llm
+from core.document_loader import get_text_splitter, load_texts
 from core.embeddings import get_langchain_embeddings
-from core.document_loader import load_texts, get_text_splitter
+from core.llm_client import get_langchain_llm
 from core.vector_store import build_langchain_vector_store
 
 logger = logging.getLogger(__name__)
@@ -70,7 +69,7 @@ class RerankingRAGLangChain(BaseRAG):
 
         self.initial_k = tech_cfg.get("initial_top_k", 20)
         self.rerank_top_k = tech_cfg.get("rerank_top_k", 5)
-        self.reranker_model_name = tech_cfg.get("reranker_model", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+        self.reranker_model_name = tech_cfg.get("reranker_model", "cross-encoder/ms-marco-MiniLM-L-6-v2")  # noqa: E501
 
         self.vector_store = None
         self.reranker = None
@@ -96,10 +95,10 @@ class RerankingRAGLangChain(BaseRAG):
             self.reranker = CrossEncoderReranker(model=model, top_n=self.rerank_top_k)
             logger.info(f"[Reranking/LC] Reranker loaded: {self.reranker_model_name}")
         except Exception as e:
-            logger.warning(f"[Reranking/LC] Reranker unavailable: {e}. Falling back to dense-only top-K.")
+            logger.warning(f"[Reranking/LC] Reranker unavailable: {e}. Falling back to dense-only top-K.")  # noqa: E501
             self.reranker = None
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """Chunk, embed, and store documents in the configured vector store."""
         logger.info(f"[Reranking/LC] Indexing {len(documents)} documents...")
 
@@ -168,12 +167,12 @@ if __name__ == "__main__":
     sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
 
     docs = [
-        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances.",
-        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories.",
-        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers.",
+        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances.",  # noqa: E501
+        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories.",  # noqa: E501
+        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers.",  # noqa: E501
     ]
 
     rag = RerankingRAGLangChain(config=ConfigLoader.get()._config)
     rag.index(docs)
-    result = rag.query("How does entanglement help quantum computers and what does Bell's theorem have to do with it?")
+    result = rag.query("How does entanglement help quantum computers and what does Bell's theorem have to do with it?")  # noqa: E501
     result.print_summary()

@@ -10,13 +10,12 @@ LlamaIndex provides higher-level abstractions that handle much of the
 boilerplate, making the code very concise.
 """
 
-from typing import Dict, List, Optional
 import logging
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_llamaindex_llm
 from core.embeddings import get_llamaindex_embeddings
+from core.llm_client import get_llamaindex_llm
 
 logger = logging.getLogger(__name__)
 
@@ -57,7 +56,7 @@ class NaiveRAGLlamaIndex(BaseRAG):
 
         logger.info(f"[NaiveRAG/LI] Initialized | model={cfg.lmstudio.get('model')}")
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """
         Build a VectorStoreIndex from raw text strings.
 
@@ -74,7 +73,7 @@ class NaiveRAGLlamaIndex(BaseRAG):
         metas = metadatas or [{}] * len(documents)
         li_docs = [
             LIDocument(text=text, metadata=meta)
-            for text, meta in zip(documents, metas)
+            for text, meta in zip(documents, metas, strict=True)
         ]
 
         # 2. Build vector index (handles chunking + embedding automatically)

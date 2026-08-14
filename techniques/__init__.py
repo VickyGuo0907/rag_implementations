@@ -11,14 +11,14 @@ Usage:
 """
 
 from techniques.registry import (
-    TECHNIQUES,
-    IMPLEMENTATIONS,
     FRAMEWORKS,
-    get_techniques,
+    IMPLEMENTATIONS,
+    TECHNIQUES,
     get_implementations,
-    load_class,
+    get_techniques,
     is_implemented,
     is_registered,
+    load_class,
 )
 
 __all__ = [

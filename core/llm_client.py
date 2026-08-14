@@ -51,8 +51,7 @@ def get_llamaindex_llm(config_key: str = "lmstudio"):
     Note: Patches LlamaIndex's model validation to allow custom model names
     from LMStudio (which aren't in OpenAI's official list).
     """
-    from llama_index.llms.openai import OpenAI
-    from llama_index.llms.openai import utils, base
+    from llama_index.llms.openai import OpenAI, base, utils
 
     # Get the original function from utils module
     original_func = utils.openai_modelname_to_contextsize

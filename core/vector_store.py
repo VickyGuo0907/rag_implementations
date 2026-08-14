@@ -17,9 +17,8 @@ Usage:
     store = build_langchain_vector_store(chunks, collection_name="naive_rag")
 """
 
-import os
 import logging
-from typing import Optional, List
+import os
 from pathlib import Path
 
 from core.config_loader import ConfigLoader
@@ -28,7 +27,7 @@ from core.embeddings import get_langchain_embeddings
 logger = logging.getLogger(__name__)
 
 
-def _resolve(collection_name: Optional[str], provider: Optional[str]):
+def _resolve(collection_name: str | None, provider: str | None):
     """Resolve collection name and provider from config with overrides."""
     cfg = ConfigLoader.get()
     vs_cfg = cfg.vector_store
@@ -58,8 +57,8 @@ def _infer_embedding_dimension(embeddings) -> int:
 
 
 def get_langchain_vector_store(
-    collection_name: Optional[str] = None,
-    provider: Optional[str] = None,
+    collection_name: str | None = None,
+    provider: str | None = None,
     embeddings=None,
 ):
     """
@@ -94,9 +93,9 @@ def get_langchain_vector_store(
         )
 
     elif prov == "faiss":
+        import faiss
         from langchain_community.docstore.in_memory import InMemoryDocstore
         from langchain_community.vectorstores import FAISS
-        import faiss
 
         dim = _infer_embedding_dimension(embeddings)
         index = faiss.IndexFlatL2(dim)
@@ -123,9 +122,9 @@ def get_langchain_vector_store(
 
 
 def build_langchain_vector_store(
-    documents: List,
-    collection_name: Optional[str] = None,
-    provider: Optional[str] = None,
+    documents: list,
+    collection_name: str | None = None,
+    provider: str | None = None,
     embeddings=None,
 ):
     """

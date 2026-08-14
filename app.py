@@ -3,17 +3,15 @@
 
 import sys
 from pathlib import Path
-from typing import Optional
 
 import streamlit as st
 
 # Ensure project root is in path (matches main.py)
 sys.path.insert(0, str(Path(__file__).parent))
 
+from evaluation.ragas_evaluator import RAGASEvaluator
 from main import initialize_rag, load_and_index_documents
 from techniques.registry import TECHNIQUES, is_registered
-from evaluation.ragas_evaluator import RAGASEvaluator
-
 
 st.set_page_config(page_title="RAG Explorer", layout="wide", initial_sidebar_state="expanded")
 
@@ -43,10 +41,10 @@ def render_sidebar() -> tuple[str, str, str, bool]:
     )
 
     meta = TECHNIQUES[technique]
-    st.sidebar.caption(f"Status: {meta['status']} | Complexity: {'⭐' * meta['complexity']} | Latency: {meta['latency']}")
+    st.sidebar.caption(f"Status: {meta['status']} | Complexity: {'⭐' * meta['complexity']} | Latency: {meta['latency']}")  # noqa: E501
 
     framework = st.sidebar.radio("Framework", options=["LangChain", "LlamaIndex"], horizontal=True)
-    framework_key = framework.lower().replace("langchain", "langchain").replace("llamaindex", "llamaindex")
+    framework_key = framework.lower().replace("langchain", "langchain").replace("llamaindex", "llamaindex")  # noqa: E501
 
     doc_path = st.sidebar.text_input("Documents Path", value="./data/sample_docs")
 
@@ -183,7 +181,7 @@ def render_evaluation():
 
             # Metric tiles
             cols = st.columns(len(eval_result.scores))
-            for col, (metric_name, score) in zip(cols, eval_result.scores.items()):
+            for col, (metric_name, score) in zip(cols, eval_result.scores.items(), strict=True):
                 with col:
                     st.metric(metric_name.replace("_", " ").title(), f"{score:.3f}")
 

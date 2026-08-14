@@ -7,14 +7,13 @@ LlamaIndex's VectorStoreIndex and a direct LLM completion call per strategy
 for parity with the LangChain implementation.
 """
 
-from typing import Dict, List, Optional
 import logging
 import re
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_llamaindex_llm
 from core.embeddings import get_llamaindex_embeddings
+from core.llm_client import get_llamaindex_llm
 
 logger = logging.getLogger(__name__)
 
@@ -102,17 +101,17 @@ class QueryTransformRAGLlamaIndex(BaseRAG):
         self.vector_index = None
         self.retriever = None
 
-        logger.info(f"[QueryTransform/LI] strategies={self.strategies}, num_queries={self.num_queries}")
+        logger.info(f"[QueryTransform/LI] strategies={self.strategies}, num_queries={self.num_queries}")  # noqa: E501
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
-        """Build a VectorStoreIndex from raw text strings (standard indexing, unchanged by query transforms)."""
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
+        """Build a VectorStoreIndex from raw text strings (standard indexing, unchanged by query transforms)."""  # noqa: E501
         from llama_index.core import VectorStoreIndex
         from llama_index.core.schema import Document as LIDocument
 
         logger.info(f"[QueryTransform/LI] Indexing {len(documents)} documents...")
 
         metas = metadatas or [{}] * len(documents)
-        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas)]
+        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas, strict=True)]
 
         self.vector_index = VectorStoreIndex.from_documents(li_docs, show_progress=True)
         self.retriever = self.vector_index.as_retriever(similarity_top_k=self.top_k)
@@ -131,7 +130,7 @@ class QueryTransformRAGLlamaIndex(BaseRAG):
         logger.debug(f"[QueryTransform/LI] Step-back query: {step_back_query}")
         return step_back_query
 
-    def _decompose_query(self, question: str) -> List[str]:
+    def _decompose_query(self, question: str) -> list[str]:
         """Break the query into simpler sub-questions."""
         response = self.llm.complete(
             DECOMPOSE_PROMPT.format(question=question, num_subquestions=self.num_queries)
@@ -141,7 +140,7 @@ class QueryTransformRAGLlamaIndex(BaseRAG):
         logger.debug(f"[QueryTransform/LI] Sub-questions: {sub_questions}")
         return sub_questions
 
-    def _generate_multi_query(self, question: str) -> List[str]:
+    def _generate_multi_query(self, question: str) -> list[str]:
         """Generate N differently-worded variants of the query."""
         response = self.llm.complete(
             MULTI_QUERY_PROMPT.format(question=question, num_queries=self.num_queries)
@@ -151,7 +150,7 @@ class QueryTransformRAGLlamaIndex(BaseRAG):
         logger.debug(f"[QueryTransform/LI] Multi-query variants: {variants}")
         return variants
 
-    def _retrieve_deduplicated(self, queries: List[str]) -> List:
+    def _retrieve_deduplicated(self, queries: list[str]) -> list:
         """Retrieve top-K nodes for each query, merging and deduplicating by content."""
         seen = set()
         unique_nodes = []
@@ -192,7 +191,7 @@ class QueryTransformRAGLlamaIndex(BaseRAG):
             "num_queries": len(all_queries),
             "num_docs": len(retrieved_nodes),
         })
-        logger.debug(f"[QueryTransform/LI] {len(all_queries)} queries → {len(retrieved_nodes)} unique nodes")
+        logger.debug(f"[QueryTransform/LI] {len(all_queries)} queries → {len(retrieved_nodes)} unique nodes")  # noqa: E501
 
         context = "\n\n---\n\n".join(node.get_content() for node in retrieved_nodes)
         response = self.llm.complete(ANSWER_PROMPT.format(context=context, question=question))

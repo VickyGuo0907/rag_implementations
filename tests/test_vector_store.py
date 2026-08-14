@@ -9,8 +9,8 @@ against a temp directory.
 import numpy as np
 import pytest
 
-from core.vector_store import build_langchain_vector_store, _resolve
 from core.document_loader import load_texts
+from core.vector_store import _resolve, build_langchain_vector_store
 
 
 class FakeEmbeddings:

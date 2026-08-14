@@ -18,7 +18,6 @@ Usage:
     rag_cls = load_class("naive_rag", "langchain")
 """
 
-from typing import Dict, List, Optional, Tuple
 
 FRAMEWORKS = ("langchain", "llamaindex")
 
@@ -26,7 +25,7 @@ FRAMEWORKS = ("langchain", "llamaindex")
 # Technique metadata (all 14 techniques, including stubs)
 # ---------------------------------------------------------------------------
 
-TECHNIQUES: Dict[str, Dict] = {
+TECHNIQUES: dict[str, dict] = {
     # ---- Tier 1 — Foundational ----
     "naive_rag": {
         "name": "Naive RAG",
@@ -63,7 +62,7 @@ TECHNIQUES: Dict[str, Dict] = {
         "latency": "Medium",
         "accuracy": "High",
         "status": "implemented",
-        "description": "Step-back, decomposition, and multi-query transformation for improved recall",
+        "description": "Step-back, decomposition, and multi-query transformation for improved recall",  # noqa: E501
     },
     "fusion_rag": {
         "name": "Fusion RAG",
@@ -72,7 +71,7 @@ TECHNIQUES: Dict[str, Dict] = {
         "latency": "Medium",
         "accuracy": "High",
         "status": "implemented",
-        "description": "Multi-query generation + hybrid dense/sparse search + Reciprocal Rank Fusion",
+        "description": "Multi-query generation + hybrid dense/sparse search + Reciprocal Rank Fusion",  # noqa: E501
     },
     "parent_document_rag": {
         "name": "Parent Document RAG",
@@ -81,7 +80,7 @@ TECHNIQUES: Dict[str, Dict] = {
         "latency": "Low",
         "accuracy": "High",
         "status": "implemented",
-        "description": "Small child chunks for precise retrieval, large parent chunks for generation context",
+        "description": "Small child chunks for precise retrieval, large parent chunks for generation context",  # noqa: E501
     },
     "reranking_rag": {
         "name": "Reranking RAG",
@@ -90,7 +89,7 @@ TECHNIQUES: Dict[str, Dict] = {
         "latency": "Medium",
         "accuracy": "High",
         "status": "implemented",
-        "description": "Wide candidate retrieval + cross-encoder reranking for high-precision results",
+        "description": "Wide candidate retrieval + cross-encoder reranking for high-precision results",  # noqa: E501
     },
     # ---- Tier 3 — Adaptive & Self-Reflective ----
     "self_rag": {
@@ -100,7 +99,7 @@ TECHNIQUES: Dict[str, Dict] = {
         "latency": "High",
         "accuracy": "High",
         "status": "implemented",
-        "description": "Prompted reflection: decide if retrieval is needed, grade relevance, critique groundedness",
+        "description": "Prompted reflection: decide if retrieval is needed, grade relevance, critique groundedness",  # noqa: E501
     },
     "corrective_rag": {
         "name": "Corrective RAG",
@@ -109,7 +108,7 @@ TECHNIQUES: Dict[str, Dict] = {
         "latency": "High",
         "accuracy": "Very High",
         "status": "implemented",
-        "description": "Grade retrieval quality once, then correct via knowledge refinement and/or web search fallback",
+        "description": "Grade retrieval quality once, then correct via knowledge refinement and/or web search fallback",  # noqa: E501
     },
     "adaptive_rag": {
         "name": "Adaptive RAG",
@@ -128,7 +127,7 @@ TECHNIQUES: Dict[str, Dict] = {
         "latency": "High",
         "accuracy": "Very High",
         "status": "stub",
-        "description": "Extract entities/relations, build a knowledge graph, query with graph traversal",
+        "description": "Extract entities/relations, build a knowledge graph, query with graph traversal",  # noqa: E501
     },
     "raptor_rag": {
         "name": "RAPTOR",
@@ -137,7 +136,7 @@ TECHNIQUES: Dict[str, Dict] = {
         "latency": "High",
         "accuracy": "Very High",
         "status": "stub",
-        "description": "Cluster docs → summarize clusters → build a recursive tree → query at depth",
+        "description": "Cluster docs → summarize clusters → build a recursive tree → query at depth",  # noqa: E501
     },
     "agentic_rag": {
         "name": "Agentic RAG",
@@ -163,25 +162,25 @@ TECHNIQUES: Dict[str, Dict] = {
 # (technique, framework) → dotted class path
 # ---------------------------------------------------------------------------
 
-IMPLEMENTATIONS: Dict[Tuple[str, str], str] = {
+IMPLEMENTATIONS: dict[tuple[str, str], str] = {
     ("naive_rag", "langchain"): "techniques.01_naive_rag.langchain_impl.NaiveRAGLangChain",
     ("naive_rag", "llamaindex"): "techniques.01_naive_rag.llamaindex_impl.NaiveRAGLlamaIndex",
     ("advanced_rag", "langchain"): "techniques.02_advanced_rag.langchain_impl.AdvancedRAGLangChain",
-    ("advanced_rag", "llamaindex"): "techniques.02_advanced_rag.llamaindex_impl.AdvancedRAGLlamaIndex",
+    ("advanced_rag", "llamaindex"): "techniques.02_advanced_rag.llamaindex_impl.AdvancedRAGLlamaIndex",  # noqa: E501
     ("hyde_rag", "langchain"): "techniques.03_hyde_rag.langchain_impl.HyDERAGLangChain",
     ("hyde_rag", "llamaindex"): "techniques.03_hyde_rag.llamaindex_impl.HyDERAGLlamaIndex",
-    ("query_transform_rag", "langchain"): "techniques.04_query_transform_rag.langchain_impl.QueryTransformRAGLangChain",
-    ("query_transform_rag", "llamaindex"): "techniques.04_query_transform_rag.llamaindex_impl.QueryTransformRAGLlamaIndex",
+    ("query_transform_rag", "langchain"): "techniques.04_query_transform_rag.langchain_impl.QueryTransformRAGLangChain",  # noqa: E501
+    ("query_transform_rag", "llamaindex"): "techniques.04_query_transform_rag.llamaindex_impl.QueryTransformRAGLlamaIndex",  # noqa: E501
     ("fusion_rag", "langchain"): "techniques.05_fusion_rag.langchain_impl.FusionRAGLangChain",
     ("fusion_rag", "llamaindex"): "techniques.05_fusion_rag.llamaindex_impl.FusionRAGLlamaIndex",
-    ("parent_document_rag", "langchain"): "techniques.06_parent_document_rag.langchain_impl.ParentDocumentRAGLangChain",
-    ("parent_document_rag", "llamaindex"): "techniques.06_parent_document_rag.llamaindex_impl.ParentDocumentRAGLlamaIndex",
-    ("reranking_rag", "langchain"): "techniques.07_reranking_rag.langchain_impl.RerankingRAGLangChain",
-    ("reranking_rag", "llamaindex"): "techniques.07_reranking_rag.llamaindex_impl.RerankingRAGLlamaIndex",
+    ("parent_document_rag", "langchain"): "techniques.06_parent_document_rag.langchain_impl.ParentDocumentRAGLangChain",  # noqa: E501
+    ("parent_document_rag", "llamaindex"): "techniques.06_parent_document_rag.llamaindex_impl.ParentDocumentRAGLlamaIndex",  # noqa: E501
+    ("reranking_rag", "langchain"): "techniques.07_reranking_rag.langchain_impl.RerankingRAGLangChain",  # noqa: E501
+    ("reranking_rag", "llamaindex"): "techniques.07_reranking_rag.llamaindex_impl.RerankingRAGLlamaIndex",  # noqa: E501
     ("self_rag", "langchain"): "techniques.08_self_rag.langchain_impl.SelfRAGLangChain",
     ("self_rag", "llamaindex"): "techniques.08_self_rag.llamaindex_impl.SelfRAGLlamaIndex",
-    ("corrective_rag", "langchain"): "techniques.09_corrective_rag.langchain_impl.CorrectiveRAGLangChain",
-    ("corrective_rag", "llamaindex"): "techniques.09_corrective_rag.llamaindex_impl.CorrectiveRAGLlamaIndex",
+    ("corrective_rag", "langchain"): "techniques.09_corrective_rag.langchain_impl.CorrectiveRAGLangChain",  # noqa: E501
+    ("corrective_rag", "llamaindex"): "techniques.09_corrective_rag.llamaindex_impl.CorrectiveRAGLlamaIndex",  # noqa: E501
 }
 
 
@@ -189,7 +188,7 @@ IMPLEMENTATIONS: Dict[Tuple[str, str], str] = {
 # Helpers
 # ---------------------------------------------------------------------------
 
-def get_techniques(status: Optional[str] = None) -> Dict[str, Dict]:
+def get_techniques(status: str | None = None) -> dict[str, dict]:
     """
     Return all technique metadata, optionally filtered by status.
 
@@ -204,7 +203,7 @@ def get_techniques(status: Optional[str] = None) -> Dict[str, Dict]:
     return {k: v for k, v in TECHNIQUES.items() if v["status"] == status}
 
 
-def get_implementations(framework: Optional[str] = None) -> List[Tuple[str, str]]:
+def get_implementations(framework: str | None = None) -> list[tuple[str, str]]:
     """
     Return registered (technique, framework) key pairs.
 

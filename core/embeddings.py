@@ -9,11 +9,11 @@ Usage:
     embeddings = get_langchain_embeddings()
 """
 
-from typing import Optional
+
 from core.config_loader import ConfigLoader
 
 
-def get_langchain_embeddings(provider: Optional[str] = None):
+def get_langchain_embeddings(provider: str | None = None):
     """
     Returns a LangChain embeddings instance based on config.
 
@@ -60,7 +60,7 @@ def get_langchain_embeddings(provider: Optional[str] = None):
                          "Choose from: lmstudio, huggingface, sentence_transformers")
 
 
-def get_llamaindex_embeddings(provider: Optional[str] = None):
+def get_llamaindex_embeddings(provider: str | None = None):
     """
     Returns a LlamaIndex embedding instance based on config.
 

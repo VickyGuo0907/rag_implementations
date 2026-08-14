@@ -4,7 +4,7 @@ Unit tests for the core configuration loader.
 
 import pytest
 
-from core.config_loader import ConfigLoader, DEFAULT_CONFIG_PATH
+from core.config_loader import ConfigLoader
 
 
 def test_config_loader_loads_default_config():

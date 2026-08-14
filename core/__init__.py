@@ -10,7 +10,7 @@ Provides shared utilities for all RAG implementations:
   - Document Loader  : Document loading and chunking utilities
 """
 
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.base_rag import BaseRAG, RAGResult, Document
 
 __all__ = ["ConfigLoader", "BaseRAG", "RAGResult", "Document"]

@@ -7,14 +7,13 @@ generation. Same isolated single-improvement idea as the LangChain version —
 no query rewriting, no multi-query, just a cross-encoder rerank stage.
 """
 
-from typing import Dict, List, Optional
 import logging
 import re
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_llamaindex_llm
 from core.embeddings import get_llamaindex_embeddings
+from core.llm_client import get_llamaindex_llm
 
 logger = logging.getLogger(__name__)
 
@@ -60,7 +59,7 @@ class RerankingRAGLlamaIndex(BaseRAG):
 
         self.initial_k = tech_cfg.get("initial_top_k", 20)
         self.rerank_top_k = tech_cfg.get("rerank_top_k", 5)
-        self.reranker_model_name = tech_cfg.get("reranker_model", "cross-encoder/ms-marco-MiniLM-L-6-v2")
+        self.reranker_model_name = tech_cfg.get("reranker_model", "cross-encoder/ms-marco-MiniLM-L-6-v2")  # noqa: E501
 
         self.vector_index = None
         self.query_engine = None
@@ -71,7 +70,7 @@ class RerankingRAGLlamaIndex(BaseRAG):
             f"model={self.reranker_model_name}"
         )
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """Build a VectorStoreIndex and a query engine with the cross-encoder reranker attached."""
         from llama_index.core import VectorStoreIndex
         from llama_index.core.schema import Document as LIDocument
@@ -79,7 +78,7 @@ class RerankingRAGLlamaIndex(BaseRAG):
         logger.info(f"[Reranking/LI] Indexing {len(documents)} documents...")
 
         metas = metadatas or [{}] * len(documents)
-        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas)]
+        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas, strict=True)]
 
         self.vector_index = VectorStoreIndex.from_documents(li_docs, show_progress=True)
 
@@ -95,7 +94,7 @@ class RerankingRAGLlamaIndex(BaseRAG):
             postprocessors.append(reranker)
             logger.info(f"[Reranking/LI] Reranker loaded: {self.reranker_model_name}")
         except Exception as e:
-            logger.warning(f"[Reranking/LI] Reranker unavailable: {e}. Falling back to dense-only top-K.")
+            logger.warning(f"[Reranking/LI] Reranker unavailable: {e}. Falling back to dense-only top-K.")  # noqa: E501
             self.reranking_enabled = False
 
         self.query_engine = self.vector_index.as_query_engine(

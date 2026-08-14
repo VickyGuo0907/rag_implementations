@@ -1,27 +1,29 @@
 """
-GraphRAG: Knowledge graph enhanced retrieval — LangChain Implementation
-============================================================================
-Extracts entities and relationships, builds a knowledge graph, enables multi-hop reasoning via graph traversal + vector similarity.
+GraphRAG: Knowledge-graph augmented retrieval — LangChain Implementation
+========================================================================
+Extracts entities and relationships, builds a knowledge graph, enables multi-hop
+reasoning via graph traversal + vector similarity.
 
 Status: 🔧 Stub — follow the pattern from 01_naive_rag/langchain_impl.py
 
 Reference: https://github.com/NirDiamant/RAG_Techniques
 """
 
-from typing import Dict, List, Optional
 import logging
-from core.base_rag import BaseRAG, RAGResult, Document
+
+from core.base_rag import BaseRAG, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_langchain_llm
+from core.document_loader import get_text_splitter
 from core.embeddings import get_langchain_embeddings
-from core.document_loader import load_texts, get_text_splitter
+from core.llm_client import get_langchain_llm
 
 logger = logging.getLogger(__name__)
 
 
 class GraphRAGLangChain(BaseRAG):
     """
-    Extracts entities and relationships, builds a knowledge graph, enables multi-hop reasoning via graph traversal + vector similarity.
+    Extracts entities and relationships, builds a knowledge graph, enables
+    multi-hop reasoning via graph traversal + vector similarity.
 
     Best for: TODO — see README.md for use case guide.
     """
@@ -37,9 +39,9 @@ class GraphRAGLangChain(BaseRAG):
         self.top_k = cfg.retrieval.get("top_k", 5)
         self.vector_store = None
         # TODO: Initialize technique-specific components
-        logger.info(f"[graph_rag/LC] Initialized (stub)")
+        logger.info("[graph_rag/LC] Initialized (stub)")
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """TODO: Implement chunking, embedding, and indexing logic."""
         raise NotImplementedError(
             "Implement index() for GraphRAGLangChain. "

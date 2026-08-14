@@ -12,14 +12,13 @@ the original RRF paper found near-optimal), which matches this project's
 `rrf_k: 60` default in config.yaml.
 """
 
-from typing import Dict, List, Optional
 import logging
 import re
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_llamaindex_llm
 from core.embeddings import get_llamaindex_embeddings
+from core.llm_client import get_llamaindex_llm
 
 logger = logging.getLogger(__name__)
 
@@ -89,17 +88,17 @@ class FusionRAGLlamaIndex(BaseRAG):
             f"hybrid_search={self.hybrid_search}"
         )
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
-        """Build a VectorStoreIndex, optionally paired with a BM25 sparse retriever, fused via RRF."""
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
+        """Build a VectorStoreIndex, optionally paired with a BM25 sparse retriever, fused via RRF."""  # noqa: E501
         from llama_index.core import VectorStoreIndex
-        from llama_index.core.schema import Document as LIDocument
         from llama_index.core.retrievers import QueryFusionRetriever
         from llama_index.core.retrievers.fusion_retriever import FUSION_MODES
+        from llama_index.core.schema import Document as LIDocument
 
         logger.info(f"[FusionRAG/LI] Indexing {len(documents)} documents...")
 
         metas = metadatas or [{}] * len(documents)
-        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas)]
+        li_docs = [LIDocument(text=t, metadata=m) for t, m in zip(documents, metas, strict=True)]
 
         self.vector_index = VectorStoreIndex.from_documents(li_docs, show_progress=True)
         vector_retriever = self.vector_index.as_retriever(similarity_top_k=self.top_k)
@@ -132,12 +131,12 @@ class FusionRAGLlamaIndex(BaseRAG):
                 similarity_top_k=self.top_k,
             )
         except Exception as e:
-            logger.warning(f"[FusionRAG/LI] BM25 retriever unavailable: {e}. Falling back to dense-only retrieval.")
+            logger.warning(f"[FusionRAG/LI] BM25 retriever unavailable: {e}. Falling back to dense-only retrieval.")  # noqa: E501
             self.hybrid_search = False
             return None
 
     def _query(self, question: str) -> RAGResult:
-        """Full RAG-Fusion pipeline: QueryFusionRetriever (multi-query + hybrid retrieval + RRF) → answer."""
+        """Full RAG-Fusion pipeline: QueryFusionRetriever (multi-query + hybrid retrieval + RRF) → answer."""  # noqa: E501
         if not self.fusion_retriever:
             raise RuntimeError("Call index() before querying.")
 

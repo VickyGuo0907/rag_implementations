@@ -15,17 +15,16 @@ Paper: "Reciprocal Rank Fusion outperforms Condorcet and individual Rank
 Learning Methods" (Cormack et al., 2009) — https://plg.uwaterloo.ca/~gvcormac/cormacksigir09-rrf.pdf
 """
 
-from typing import Dict, List, Optional
 import logging
 
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_langchain_llm
+from core.document_loader import get_text_splitter, load_texts
 from core.embeddings import get_langchain_embeddings
-from core.document_loader import load_texts, get_text_splitter
+from core.llm_client import get_langchain_llm
 from core.vector_store import build_langchain_vector_store
 
 logger = logging.getLogger(__name__)
@@ -98,8 +97,8 @@ class FusionRAGLangChain(BaseRAG):
             f"hybrid_search={self.hybrid_search}"
         )
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
-        """Chunk, embed, and store documents. Also builds a BM25 sparse index if hybrid search is enabled."""
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
+        """Chunk, embed, and store documents. Also builds a BM25 sparse index if hybrid search is enabled."""  # noqa: E501
         logger.info(f"[FusionRAG/LC] Indexing {len(documents)} documents...")
 
         lc_docs = load_texts(documents, metadatas)
@@ -116,7 +115,7 @@ class FusionRAGLangChain(BaseRAG):
         self._is_indexed = True
         logger.info(f"[FusionRAG/LC] Indexed {len(chunks)} chunks ✓")
 
-    def _build_bm25_retriever(self, chunks: List) -> None:
+    def _build_bm25_retriever(self, chunks: list) -> None:
         """Build the sparse (keyword) retriever half of hybrid search."""
         try:
             from langchain_community.retrievers import BM25Retriever
@@ -125,7 +124,7 @@ class FusionRAGLangChain(BaseRAG):
             self.bm25_retriever.k = self.top_k
             logger.info("[FusionRAG/LC] BM25 sparse retriever built ✓")
         except Exception as e:
-            logger.warning(f"[FusionRAG/LC] BM25 retriever unavailable: {e}. Falling back to dense-only retrieval.")
+            logger.warning(f"[FusionRAG/LC] BM25 retriever unavailable: {e}. Falling back to dense-only retrieval.")  # noqa: E501
             self.bm25_retriever = None
             self.hybrid_search = False
 
@@ -133,7 +132,7 @@ class FusionRAGLangChain(BaseRAG):
     # Multi-query generation
     # ------------------------------------------------------------------
 
-    def _generate_query_variants(self, question: str) -> List[str]:
+    def _generate_query_variants(self, question: str) -> list[str]:
         """Generate (num_queries - 1) rephrasings; the original question is added separately."""
         num_variants = max(self.num_queries - 1, 0)
         if num_variants == 0:
@@ -148,17 +147,17 @@ class FusionRAGLangChain(BaseRAG):
     # Hybrid retrieval + Reciprocal Rank Fusion
     # ------------------------------------------------------------------
 
-    def _dense_retrieve(self, query: str) -> List:
+    def _dense_retrieve(self, query: str) -> list:
         retriever = self.vector_store.as_retriever(search_kwargs={"k": self.top_k})
         return retriever.invoke(query)
 
-    def _sparse_retrieve(self, query: str) -> List:
+    def _sparse_retrieve(self, query: str) -> list:
         return self.bm25_retriever.invoke(query)
 
-    def _reciprocal_rank_fusion(self, ranked_lists: List[List]) -> List:
-        """Fuse multiple ranked lists into one, scoring by RRF and returning docs sorted by fused score."""
-        scores: Dict[int, float] = {}
-        doc_lookup: Dict[int, object] = {}
+    def _reciprocal_rank_fusion(self, ranked_lists: list[list]) -> list:
+        """Fuse multiple ranked lists into one, scoring by RRF and returning docs sorted by fused score."""  # noqa: E501
+        scores: dict[int, float] = {}
+        doc_lookup: dict[int, object] = {}
 
         for ranked_list in ranked_lists:
             for rank, doc in enumerate(ranked_list):
@@ -226,12 +225,12 @@ if __name__ == "__main__":
     sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
 
     docs = [
-        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances.",
-        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories.",
-        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers.",
+        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances.",  # noqa: E501
+        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories.",  # noqa: E501
+        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers.",  # noqa: E501
     ]
 
     rag = FusionRAGLangChain(config=ConfigLoader.get()._config)
     rag.index(docs)
-    result = rag.query("How does entanglement help quantum computers and what does Bell's theorem have to do with it?")
+    result = rag.query("How does entanglement help quantum computers and what does Bell's theorem have to do with it?")  # noqa: E501
     result.print_summary()

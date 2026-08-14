@@ -24,26 +24,25 @@ Paper: "Corrective Retrieval Augmented Generation" (Yan et al., 2024)
        https://arxiv.org/abs/2401.15884
 """
 
-from typing import Dict, List, Optional
 import logging
 import os
 import re
 
-from langchain_core.prompts import ChatPromptTemplate
 from langchain_core.output_parsers import StrOutputParser
+from langchain_core.prompts import ChatPromptTemplate
 
-from core.base_rag import BaseRAG, RAGResult, Document
+from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
-from core.llm_client import get_langchain_llm
+from core.document_loader import get_text_splitter, load_texts
 from core.embeddings import get_langchain_embeddings
-from core.document_loader import load_texts, get_text_splitter
+from core.llm_client import get_langchain_llm
 from core.vector_store import build_langchain_vector_store
 
 logger = logging.getLogger(__name__)
 
 
 def _parse_score(text: str, default: float = 0.5) -> float:
-    """Extract a single 0.0-1.0 score from an LLM response, clamped and defaulted on parse failure."""
+    """Extract a single 0.0-1.0 score from an LLM response, clamped and defaulted on parse failure."""  # noqa: E501
     match = re.search(r"(\d*\.?\d+)", text)
     if not match:
         return default
@@ -53,7 +52,7 @@ def _parse_score(text: str, default: float = 0.5) -> float:
         return default
 
 
-def _parse_scores(text: str, count: int, default: float = 0.5) -> List[float]:
+def _parse_scores(text: str, count: int, default: float = 0.5) -> list[float]:
     """Extract one 0.0-1.0 score per line, padding/truncating to the expected count."""
     lines = [line for line in text.strip().split("\n") if line.strip()]
     scores = [_parse_score(line, default) for line in lines]
@@ -161,17 +160,17 @@ class CorrectiveRAGLangChain(BaseRAG):
             if not api_key:
                 logger.warning(
                     "[CorrectiveRAG/LC] web_search_fallback is enabled but no Tavily API key is "
-                    "configured (rag_techniques.corrective_rag.tavily_api_key or TAVILY_API_KEY env "
+                    "configured (rag_techniques.corrective_rag.tavily_api_key or TAVILY_API_KEY env "  # noqa: E501
                     "var). Falling back to parametric knowledge instead of web search."
                 )
                 return None
             os.environ.setdefault("TAVILY_API_KEY", api_key)
             return TavilySearchResults(max_results=3)
         except Exception as e:
-            logger.warning(f"[CorrectiveRAG/LC] Web search unavailable: {e}. Falling back to parametric knowledge.")
+            logger.warning(f"[CorrectiveRAG/LC] Web search unavailable: {e}. Falling back to parametric knowledge.")  # noqa: E501
             return None
 
-    def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
+    def index(self, documents: list[str], metadatas: list[dict] | None = None) -> None:
         """Chunk, embed, and store documents in the configured vector store."""
         logger.info(f"[CorrectiveRAG/LC] Indexing {len(documents)} documents...")
 
@@ -190,11 +189,11 @@ class CorrectiveRAGLangChain(BaseRAG):
     # Corrective steps
     # ------------------------------------------------------------------
 
-    def _retrieve(self, query: str) -> List:
+    def _retrieve(self, query: str) -> list:
         retriever = self.vector_store.as_retriever(search_kwargs={"k": self.top_k})
         return retriever.invoke(query)
 
-    def _grade_relevance(self, question: str, candidates: List) -> List[float]:
+    def _grade_relevance(self, question: str, candidates: list) -> list[float]:
         """Batch-score every candidate's relevance to the question in one LLM call."""
         if not candidates:
             return []
@@ -204,7 +203,7 @@ class CorrectiveRAGLangChain(BaseRAG):
         return _parse_scores(result, count=len(candidates))
 
     @staticmethod
-    def _classify_action(scores: List[float], threshold: float) -> str:
+    def _classify_action(scores: list[float], threshold: float) -> str:
         """Classify overall retrieval quality as correct / ambiguous / incorrect."""
         if not scores:
             return "incorrect"
@@ -215,7 +214,7 @@ class CorrectiveRAGLangChain(BaseRAG):
             return "incorrect"
         return "ambiguous"
 
-    def _refine_knowledge(self, question: str, docs: List) -> List[str]:
+    def _refine_knowledge(self, question: str, docs: list) -> list[str]:
         """Decompose-then-recompose: extract only the sentences relevant to the question."""
         if not docs:
             return []
@@ -224,7 +223,7 @@ class CorrectiveRAGLangChain(BaseRAG):
         result = chain.invoke({"question": question, "documents": docs_text})
         return [result.strip()] if result.strip() else []
 
-    def _web_search(self, question: str) -> List[str]:
+    def _web_search(self, question: str) -> list[str]:
         """Run the optional web search fallback. Returns [] if unavailable or it fails."""
         if not self.web_search_tool:
             return []
@@ -241,7 +240,7 @@ class CorrectiveRAGLangChain(BaseRAG):
             logger.warning(f"[CorrectiveRAG/LC] Web search call failed: {e}")
             return []
 
-    def _generate_with_context(self, question: str, context_blocks: List[str]) -> str:
+    def _generate_with_context(self, question: str, context_blocks: list[str]) -> str:
         context = "\n\n---\n\n".join(context_blocks)
         chain = ANSWER_PROMPT | self.llm | StrOutputParser()
         return chain.invoke({"context": context, "question": question})
@@ -258,7 +257,7 @@ class CorrectiveRAGLangChain(BaseRAG):
         candidates = self._retrieve(question)
         scores = self._grade_relevance(question, candidates)
         action = self._classify_action(scores, self.relevance_threshold)
-        correct_docs = [doc for doc, score in zip(candidates, scores) if score >= self.relevance_threshold]
+        correct_docs = [doc for doc, score in zip(candidates, scores, strict=True) if score >= self.relevance_threshold]  # noqa: E501
 
         intermediate_steps = [{
             "step": "relevance_grading",
@@ -266,9 +265,9 @@ class CorrectiveRAGLangChain(BaseRAG):
             "scores": scores,
             "action": action,
         }]
-        logger.debug(f"[CorrectiveRAG/LC] action={action}, {len(correct_docs)}/{len(candidates)} docs relevant")
+        logger.debug(f"[CorrectiveRAG/LC] action={action}, {len(correct_docs)}/{len(candidates)} docs relevant")  # noqa: E501
 
-        web_results: List[str] = []
+        web_results: list[str] = []
         if action in ("incorrect", "ambiguous"):
             web_results = self._web_search(question)
             intermediate_steps.append({
@@ -277,20 +276,20 @@ class CorrectiveRAGLangChain(BaseRAG):
                 "num_results": len(web_results),
             })
 
-        context_blocks: List[str] = []
+        context_blocks: list[str] = []
         if action in ("correct", "ambiguous") and correct_docs:
             refined = self._refine_knowledge(question, correct_docs)
             context_blocks.extend(refined)
-            intermediate_steps.append({"step": "knowledge_refinement", "num_source_docs": len(correct_docs)})
+            intermediate_steps.append({"step": "knowledge_refinement", "num_source_docs": len(correct_docs)})  # noqa: E501
         context_blocks.extend(web_results)
 
         if context_blocks:
             answer = self._generate_with_context(question, context_blocks)
         else:
             answer = self._generate_without_context(question)
-            intermediate_steps.append({"step": "fallback_generation", "reason": "no usable internal or external context"})
+            intermediate_steps.append({"step": "fallback_generation", "reason": "no usable internal or external context"})  # noqa: E501
 
-        source_documents = [Document(content=doc.page_content, metadata=doc.metadata) for doc in correct_docs]
+        source_documents = [Document(content=doc.page_content, metadata=doc.metadata) for doc in correct_docs]  # noqa: E501
         source_documents.extend(
             Document(content=text, metadata={"source": "web_search"}) for text in web_results
         )
@@ -313,9 +312,9 @@ if __name__ == "__main__":
     sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
 
     docs = [
-        "The Zylophane Initiative was launched in 2031 by the fictional Meridian Institute to study synthetic coral reefs.",
-        "The Glimmerprobe sensor, developed for the Zylophane Initiative, has a detection range of 40 meters and reports readings every 12 seconds.",
-        "ReefNet mesh network nodes are solar powered and were deployed across 14 test sites in the fictional Azuria Marine Reserve.",
+        "The Zylophane Initiative was launched in 2031 by the fictional Meridian Institute to study synthetic coral reefs.",  # noqa: E501
+        "The Glimmerprobe sensor, developed for the Zylophane Initiative, has a detection range of 40 meters and reports readings every 12 seconds.",  # noqa: E501
+        "ReefNet mesh network nodes are solar powered and were deployed across 14 test sites in the fictional Azuria Marine Reserve.",  # noqa: E501
     ]
 
     rag = CorrectiveRAGLangChain(config=ConfigLoader.get()._config)

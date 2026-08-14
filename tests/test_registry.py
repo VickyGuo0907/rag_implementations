@@ -6,15 +6,17 @@ technique metadata and framework→class mappings.
 import importlib
 import inspect
 
+import pytest
+
 from techniques.registry import (
-    TECHNIQUES,
-    IMPLEMENTATIONS,
     FRAMEWORKS,
-    get_techniques,
+    IMPLEMENTATIONS,
+    TECHNIQUES,
     get_implementations,
-    load_class,
+    get_techniques,
     is_implemented,
     is_registered,
+    load_class,
 )
 
 
@@ -47,17 +49,14 @@ def test_load_class_returns_base_rag_subclass():
     for tech, fw in get_implementations():
         cls = load_class(tech, fw)
         assert issubclass(cls, BaseRAG), f"{cls} does not subclass BaseRAG"
-        assert cls.TECHNIQUE_NAME == tech
-        assert cls.FRAMEWORK == fw
+        assert tech == cls.TECHNIQUE_NAME
+        assert fw == cls.FRAMEWORK
 
 
 def test_load_class_unknown_combo_raises_keyerror():
     """An unimplemented combo raises KeyError."""
-    try:
+    with pytest.raises(KeyError):
         load_class("graph_rag", "langchain")
-        assert False, "graph_rag langchain is a stub, should not load"
-    except KeyError:
-        pass
 
 
 def test_is_registered_stub_technique():
@@ -68,7 +67,7 @@ def test_is_registered_stub_technique():
 
 def test_class_files_exist_on_disk():
     """The module path for every implementation resolves to a real file."""
-    for (tech, fw), dotted in IMPLEMENTATIONS.items():
+    for _key, dotted in IMPLEMENTATIONS.items():
         module_path = dotted.rsplit(".", 1)[0]
         mod = importlib.import_module(module_path)
         assert mod is not None, f"{module_path} failed to import"

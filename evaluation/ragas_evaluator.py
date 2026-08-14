@@ -18,15 +18,16 @@ Reference: https://docs.ragas.io/en/latest/
 
 import asyncio
 import asyncio.events
+import importlib.util
 import json
 import logging
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any
 
-from core.config_loader import ConfigLoader
 from core.base_rag import BaseRAG
+from core.config_loader import ConfigLoader
 
 logger = logging.getLogger(__name__)
 
@@ -124,14 +125,14 @@ class EvaluationResult:
     technique: str
     framework: str
     num_samples: int
-    scores: Dict[str, float]
-    raw_results: Optional[Any] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    scores: dict[str, float]
+    raw_results: Any | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
     def print_report(self) -> None:
         sep = "=" * 60
         print(f"\n{sep}")
-        print(f"  RAGAS Evaluation Report")
+        print("  RAGAS Evaluation Report")
         print(f"  Technique : {self.technique} ({self.framework})")
         print(f"  Samples   : {self.num_samples}")
         print(sep)
@@ -143,7 +144,7 @@ class EvaluationResult:
         print(f"  {'Overall Average':<25} {overall:.4f}")
         print(sep + "\n")
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "technique": self.technique,
             "framework": self.framework,
@@ -161,15 +162,14 @@ class RAGASEvaluator:
     using the LLM itself as an evaluator for most metrics.
     """
 
-    def __init__(self, config_path: Optional[str] = None):
+    def __init__(self, config_path: str | None = None):
         self.cfg = ConfigLoader.get(config_path)
         self.eval_cfg = self.cfg.evaluation
         self._check_ragas_installed()
 
     def _check_ragas_installed(self) -> None:
         try:
-            with _standard_asyncio_loop():
-                import ragas
+            importlib.util.find_spec("ragas")
         except ImportError:
             logger.warning(
                 "RAGAS not installed. Run: pip install ragas\n"
@@ -179,9 +179,9 @@ class RAGASEvaluator:
     def evaluate(
             self,
             rag: BaseRAG,
-            questions: List[str],
-            ground_truths: Optional[List[str]] = None,
-            contexts_override: Optional[List[List[str]]] = None,
+            questions: list[str],
+            ground_truths: list[str] | None = None,
+            contexts_override: list[list[str]] | None = None,
     ) -> EvaluationResult:
         """
         Run RAGAS evaluation on a RAG pipeline.
@@ -240,25 +240,26 @@ class RAGASEvaluator:
 
     def _run_ragas(
             self,
-            questions: List[str],
-            answers: List[str],
-            contexts: List[List[str]],
-            ground_truths: Optional[List[str]],
-    ) -> Dict[str, float]:
+            questions: list[str],
+            answers: list[str],
+            contexts: list[list[str]],
+            ground_truths: list[str] | None,
+    ) -> dict[str, float]:
         """Run actual RAGAS evaluation."""
         from datasets import Dataset
         with _standard_asyncio_loop():
             from ragas import evaluate
             from ragas.metrics import (
-                faithfulness,
                 answer_relevancy,
-                context_recall,
                 context_precision,
+                context_recall,
+                faithfulness,
             )
-        from ragas.llms import LangchainLLMWrapper
         from ragas.embeddings import LangchainEmbeddingsWrapper
-        from core.llm_client import get_langchain_llm
+        from ragas.llms import LangchainLLMWrapper
+
         from core.embeddings import get_langchain_embeddings
+        from core.llm_client import get_langchain_llm
 
         eval_cfg = self.eval_cfg
         metrics_cfg = eval_cfg.get("metrics", {})
@@ -334,10 +335,10 @@ class RAGASEvaluator:
 
     def _fallback_metrics(
             self,
-            questions: List[str],
-            answers: List[str],
-            contexts: List[List[str]],
-    ) -> Dict[str, float]:
+            questions: list[str],
+            answers: list[str],
+            contexts: list[list[str]],
+    ) -> dict[str, float]:
         """
         Fallback heuristic metrics when RAGAS is unavailable.
         These provide basic quality signals without external LLM evaluation.
@@ -376,7 +377,7 @@ class RAGASEvaluator:
             json.dump(result.to_dict(), f, indent=2)
         logger.info(f"Evaluation results saved to {filename}")
 
-    def compare(self, results: List[EvaluationResult]) -> None:
+    def compare(self, results: list[EvaluationResult]) -> None:
         """Print a side-by-side comparison of multiple evaluation results."""
         if not results:
             return
@@ -385,7 +386,7 @@ class RAGASEvaluator:
         col_width = 20
 
         print("\n" + "=" * (col_width * (len(results) + 1) + 5))
-        print(f"  RAG Technique Comparison")
+        print("  RAG Technique Comparison")
         print("=" * (col_width * (len(results) + 1) + 5))
 
         # Header

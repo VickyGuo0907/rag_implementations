@@ -6,10 +6,15 @@ dist/
 wheels/
 *.egg-info
 .idea/
+.jbeval/
+.claude/
 
 # Virtual environments
 .venv
 data/vector_store
+
+# Eval artifacts
+evaluation_results/
 
 # OS / editor cruft
 .DS_Store

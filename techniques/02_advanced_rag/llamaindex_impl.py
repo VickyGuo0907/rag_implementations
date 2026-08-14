@@ -77,7 +77,7 @@ class AdvancedRAGLlamaIndex(BaseRAG):
 
         if self.enable_reranking:
             try:
-                from llama_index.postprocessor.sentence_transformer_rerank import (
+                from llama_index.postprocessor.sbert_rerank import (
                     SentenceTransformerRerank,
                 )
                 reranker = SentenceTransformerRerank(

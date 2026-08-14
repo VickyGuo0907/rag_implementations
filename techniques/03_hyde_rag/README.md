@@ -40,6 +40,24 @@ flowchart TD
 
 ---
 
+## Data Flow Diagram
+
+The complete HyDE RAG pipeline consists of two phases:
+
+### Offline Phase (Indexing)
+**Documents → Chunks → Embeddings → Vector Store**
+
+Identical to Naive RAG — real documents are chunked, embedded, and indexed once. HyDE's trick only changes how retrieval works in the online phase below.
+
+### Online Phase (Query)
+**Query → LLM generates Hypothetical Document → Embed hypothetical doc → Similarity search against real documents → Retrieved real chunks → LLM (Context + Original Question) → Answer**
+
+Instead of embedding the raw query, an LLM first writes a hypothetical "ideal" answer. That hypothetical document is embedded and used to search real documents — its embedding sits closer in vector space to real passages than a short question would. The hypothetical document itself is discarded after retrieval and never shown to the user or the final LLM — only the real retrieved chunks ground the answer.
+
+![HyDE RAG Data Flow](hyde_rag_dataflow.png)
+
+---
+
 ## Pros & Cons
 
 | ✅ Pros | ❌ Cons |

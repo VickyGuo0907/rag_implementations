@@ -26,53 +26,13 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 from core.config_loader import ConfigLoader
 from core.document_loader import load_documents
-
-# ---------------------------------------------------------------------------
-# Technique → Class mapping
-# ---------------------------------------------------------------------------
-
-TECHNIQUE_CLASSES = {
-    ("naive_rag", "langchain"): "techniques.01_naive_rag.langchain_impl.NaiveRAGLangChain",
-    ("naive_rag", "llamaindex"): "techniques.01_naive_rag.llamaindex_impl.NaiveRAGLlamaIndex",
-    ("advanced_rag", "langchain"): "techniques.02_advanced_rag.langchain_impl.AdvancedRAGLangChain",
-    ("advanced_rag", "llamaindex"): "techniques.02_advanced_rag.llamaindex_impl.AdvancedRAGLlamaIndex",
-    ("hyde_rag", "langchain"): "techniques.03_hyde_rag.langchain_impl.HyDERAGLangChain",
-    ("hyde_rag", "llamaindex"): "techniques.03_hyde_rag.llamaindex_impl.HyDERAGLlamaIndex",
-}
-
-TECHNIQUES_METADATA = {
-    "naive_rag": {
-        "name": "Naive RAG",
-        "complexity": "⭐",
-        "latency": "🟢 Low",
-        "accuracy": "🟡 Moderate",
-        "status": "✅ Done",
-        "description": "Basic retrieval-augmented generation with vector similarity search",
-    },
-    "advanced_rag": {
-        "name": "Advanced RAG",
-        "complexity": "⭐⭐⭐",
-        "latency": "🟡 Medium",
-        "accuracy": "🟢 High",
-        "status": "✅ Done",
-        "description": "Enhanced RAG with query rewriting, reranking, and contextual compression",
-    },
-    "hyde_rag": {
-        "name": "HyDE RAG",
-        "complexity": "⭐⭐",
-        "latency": "🟡 Medium",
-        "accuracy": "🟢 High",
-        "status": "✅ Done",
-        "description": "Hypothetical document embeddings for vocabulary mismatch resolution",
-    },
-}
-
-
-def load_class(dotted_path: str):
-    """Dynamically import and return a class from a dotted module path."""
-    module_path, class_name = dotted_path.rsplit(".", 1)
-    module = __import__(module_path, fromlist=[class_name])
-    return getattr(module, class_name)
+from techniques.registry import (
+    TECHNIQUES,
+    get_techniques,
+    get_implementations,
+    load_class,
+    is_registered,
+)
 
 
 def setup_logging(level: str = "INFO"):
@@ -110,14 +70,13 @@ def cmd_run(args):
 
 def initialize_rag(technique: str, framework: str, config_path: Optional[str]):
     """Initialize and return RAG instance."""
-    key = (technique, framework)
-    if key not in TECHNIQUE_CLASSES:
+    if not is_registered(technique, framework):
         print(f"\n❌ No implemented class for: technique='{technique}', framework='{framework}'")
-        print(f"   Available: {list(TECHNIQUE_CLASSES.keys())}")
+        print(f"   Available: {get_implementations()}")
         sys.exit(1)
 
     cfg = ConfigLoader.get(config_path)
-    RAGClass = load_class(TECHNIQUE_CLASSES[key])
+    RAGClass = load_class(technique, framework)
     print(f"\n🚀 Initializing {RAGClass.__name__}...")
     return RAGClass(config=cfg._config)
 
@@ -188,18 +147,28 @@ def run_evaluation(rag):
 # Subcommand: list
 # ---------------------------------------------------------------------------
 
+_STATUS_ICONS = {"implemented": "✅ Done", "stub": "🔧 Stub"}
+_COMPLEXITY_ICONS = {1: "⭐", 2: "⭐⭐", 3: "⭐⭐⭐", 4: "⭐⭐⭐⭐", 5: "⭐⭐⭐⭐⭐"}
+_LATENCY_ICONS = {"Low": "🟢 Low", "Medium": "🟡 Medium", "High": "🔴 High", "Varies": "🟡 Varies"}
+_ACCURACY_ICONS = {
+    "Moderate": "🟡 Moderate",
+    "High": "🟢 High",
+    "Very High": "🟢 Very High",
+}
+
+
 def cmd_list(args):
     """List all available RAG techniques."""
     print("\n📚 Available RAG Techniques\n")
     print("┌─ Technique ────────────┬─ Status ─┬─ Complexity ─┬─ Latency ──────┬─ Accuracy ────┐")
 
-    for technique_key in sorted(TECHNIQUES_METADATA.keys()):
-        meta = TECHNIQUES_METADATA[technique_key]
+    for technique_key in sorted(TECHNIQUES.keys()):
+        meta = TECHNIQUES[technique_key]
         name = meta["name"]
-        status = meta["status"]
-        complexity = meta["complexity"]
-        latency = meta["latency"]
-        accuracy = meta["accuracy"]
+        status = _STATUS_ICONS.get(meta["status"], meta["status"])
+        complexity = _COMPLEXITY_ICONS.get(meta["complexity"], "⭐" * meta["complexity"])
+        latency = _LATENCY_ICONS.get(meta["latency"], meta["latency"])
+        accuracy = _ACCURACY_ICONS.get(meta["accuracy"], meta["accuracy"])
 
         print(
             f"│ {name:<23} │ {status:<9} │ {complexity:<12} │ {latency:<14} │ {accuracy:<14} │"
@@ -217,18 +186,18 @@ def cmd_list(args):
 def cmd_info(args):
     """Show detailed information about a technique."""
     technique = args.technique
-    if technique not in TECHNIQUES_METADATA:
+    if technique not in TECHNIQUES:
         print(f"\n❌ Unknown technique: {technique}")
-        print(f"   Available: {', '.join(TECHNIQUES_METADATA.keys())}\n")
+        print(f"   Available: {', '.join(TECHNIQUES.keys())}\n")
         sys.exit(1)
 
-    meta = TECHNIQUES_METADATA[technique]
+    meta = TECHNIQUES[technique]
     print(f"\n📖 {meta['name']}")
     print(f"   Description: {meta['description']}")
-    print(f"   Status: {meta['status']}")
-    print(f"   Complexity: {meta['complexity']}")
-    print(f"   Latency: {meta['latency']}")
-    print(f"   Accuracy: {meta['accuracy']}")
+    print(f"   Status: {_STATUS_ICONS.get(meta['status'], meta['status'])}")
+    print(f"   Complexity: {_COMPLEXITY_ICONS.get(meta['complexity'], '⭐' * meta['complexity'])}")
+    print(f"   Latency: {_LATENCY_ICONS.get(meta['latency'], meta['latency'])}")
+    print(f"   Accuracy: {_ACCURACY_ICONS.get(meta['accuracy'], meta['accuracy'])}")
     print(f"\n💻 Available Implementations:")
     print(f"   - LangChain:  python main.py run --technique {technique} --framework langchain")
     print(f"   - LlamaIndex: python main.py run --technique {technique} --framework llamaindex")

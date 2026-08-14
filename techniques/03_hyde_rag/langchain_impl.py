@@ -22,6 +22,7 @@ from core.config_loader import ConfigLoader
 from core.llm_client import get_langchain_llm
 from core.embeddings import get_langchain_embeddings
 from core.document_loader import load_texts, get_text_splitter
+from core.vector_store import build_langchain_vector_store
 
 logger = logging.getLogger(__name__)
 
@@ -82,17 +83,12 @@ class HyDERAGLangChain(BaseRAG):
 
     def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
         """Standard indexing — real documents are stored as-is."""
-        from langchain_chroma import Chroma
-
         lc_docs = load_texts(documents, metadatas)
         chunks = self.text_splitter.split_documents(lc_docs)
 
-        cfg = ConfigLoader.get()
-        self.vector_store = Chroma.from_documents(
-            documents=chunks,
-            embedding=self.embeddings,
-            collection_name=f"hyde_rag_{cfg.vector_store.get('collection_name', 'docs')}",
-            persist_directory=cfg.vector_store.get("persist_directory", "./data/vector_store"),
+        self.vector_store = build_langchain_vector_store(
+            chunks,
+            collection_name="hyde_rag",
         )
         self._is_indexed = True
         logger.info(f"[HyDE/LC] Indexed {len(chunks)} chunks ✓")
@@ -138,18 +134,3 @@ class HyDERAGLangChain(BaseRAG):
             metadata={"hypothetical_document_preview": hypothetical_doc[:200]},
         )
 
-
-if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
-
-    docs = [
-        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances.",
-        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories.",
-        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers.",
-    ]
-
-    rag = HyDERAGLangChain(config=ConfigLoader.get()._config)
-    rag.index(docs)
-    result = rag.query("Explain how quantum entanglement works")
-    result.print_summary()

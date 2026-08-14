@@ -23,20 +23,20 @@ RAG_technique_summary/
 │   └── document_loader.py             # Document loading & chunking
 │
 ├── techniques/                        # 14 RAG implementations
-│   ├── 01_naive_rag/                  ✅ Production Ready
+│   ├── 01_naive_rag/                  ✅ Full implementation
 │   │   ├── __init__.py                # Clean exports (LangChain + LlamaIndex)
 │   │   ├── langchain_impl.py          # 154 lines, LCEL chain with ChromaDB
 │   │   ├── llamaindex_impl.py         # 117 lines, VectorStoreIndex + QueryEngine
 │   │   └── README.md                  # Flowchart, comparison, use cases, pros/cons
 │   ├── 02_advanced_rag/               ✅ Full implementation
 │   ├── 03_hyde_rag/                   ✅ Full implementation
-│   ├── 04_query_transform_rag/        🔧 Stub — pattern established
-│   ├── 05_fusion_rag/                 🔧 Stub
-│   ├── 06_parent_document_rag/        🔧 Stub
-│   ├── 07_reranking_rag/              🔧 Stub
-│   ├── 08_self_rag/                   🔧 Stub
-│   ├── 09_corrective_rag/             🔧 Stub
-│   ├── 10_adaptive_rag/               🔧 Stub
+│   ├── 04_query_transform_rag/        ✅ Full implementation
+│   ├── 05_fusion_rag/                 ✅ Full implementation
+│   ├── 06_parent_document_rag/        ✅ Full implementation
+│   ├── 07_reranking_rag/              ✅ Full implementation
+│   ├── 08_self_rag/                   ✅ Full implementation
+│   ├── 09_corrective_rag/             ✅ Full implementation
+│   ├── 10_adaptive_rag/               🔧 Stub — pattern established
 │   ├── 11_graph_rag/                  🔧 Stub
 │   ├── 12_raptor_rag/                 🔧 Stub
 │   ├── 13_agentic_rag/                🔧 Stub
@@ -52,7 +52,7 @@ RAG_technique_summary/
 ├── main.py                            # 🚀 Main CLI entry point
 ├── app.py                             # 🌐 Streamlit web interface
 │
-├── requirements.txt
+├── pyproject.toml                     # Single source of dependency truth
 └── README.md                          # ← You are here
 ```
 
@@ -83,7 +83,7 @@ RAG_technique_summary/
 cd RAG_technique_summary
 
 # Install dependencies
-pip install -r requirements.txt
+pip install .
 ```
 
 ### 2. Configure
@@ -293,18 +293,41 @@ python main.py config validate  # Validate config file
 
 ### Technique Comparison Matrix
 
+Techniques are grouped into four tiers by *what kind of problem they solve*, not just difficulty — complexity scores overlap between tiers, since a tier is about the shape of the technique (linear enhancement vs. control flow vs. structural rework), not a difficulty ladder.
+
+#### Tier 1 — Foundational
+The baseline retrieve-then-generate pipeline everything else builds on.
+
 | # | Technique | Complexity | Latency | Accuracy | Status |
 |---|-----------|:----------:|:-------:|:--------:|:------:|
 | 01 | Naive RAG | ⭐ | 🟢 Low | 🟡 Moderate | ✅ Done |
 | 02 | Advanced RAG | ⭐⭐⭐ | 🟡 Medium | 🟢 High | ✅ Done |
+
+#### Tier 2 — Query & Retrieval Enhancement
+Single-purpose improvements to one stage of the pipeline — query formulation, chunking, or ranking. Still a linear flow: no branching, no loops, no self-critique.
+
+| # | Technique | Complexity | Latency | Accuracy | Status |
+|---|-----------|:----------:|:-------:|:--------:|:------:|
 | 03 | HyDE RAG | ⭐⭐ | 🟡 Medium | 🟢 High | ✅ Done |
-| 04 | Query Transform RAG | ⭐⭐ | 🟡 Medium | 🟢 High | 🔧 Stub |
-| 05 | Fusion RAG | ⭐⭐⭐ | 🟡 Medium | 🟢 High | 🔧 Stub |
-| 06 | Parent Document RAG | ⭐⭐ | 🟢 Low | 🟢 High | 🔧 Stub |
-| 07 | Reranking RAG | ⭐⭐ | 🟡 Medium | 🟢 High | 🔧 Stub |
-| 08 | Self-RAG | ⭐⭐⭐⭐ | 🔴 High | 🟢 High | 🔧 Stub |
-| 09 | Corrective RAG | ⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | 🔧 Stub |
+| 04 | Query Transform RAG | ⭐⭐ | 🟡 Medium | 🟢 High | ✅ Done |
+| 05 | Fusion RAG | ⭐⭐⭐ | 🟡 Medium | 🟢 High | ✅ Done |
+| 06 | Parent Document RAG | ⭐⭐ | 🟢 Low | 🟢 High | ✅ Done |
+| 07 | Reranking RAG | ⭐⭐ | 🟡 Medium | 🟢 High | ✅ Done |
+
+#### Tier 3 — Adaptive & Self-Reflective
+Introduces actual control flow: the pipeline critiques its own output, grades retrieval quality and corrects itself, or routes to a different strategy based on query classification.
+
+| # | Technique | Complexity | Latency | Accuracy | Status |
+|---|-----------|:----------:|:-------:|:--------:|:------:|
+| 08 | Self-RAG | ⭐⭐⭐⭐ | 🔴 High | 🟢 High | ✅ Done |
+| 09 | Corrective RAG | ⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | ✅ Done |
 | 10 | Adaptive RAG | ⭐⭐⭐ | 🟡 Varies | 🟢 High | 🔧 Stub |
+
+#### Tier 4 — Structural & Specialized
+Needs fundamentally different data structures or machinery — knowledge graphs, hierarchical cluster trees, tool-using agents, cross-modal content — rather than being a retrieval/generation variant.
+
+| # | Technique | Complexity | Latency | Accuracy | Status |
+|---|-----------|:----------:|:-------:|:--------:|:------:|
 | 11 | GraphRAG | ⭐⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | 🔧 Stub |
 | 12 | RAPTOR | ⭐⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | 🔧 Stub |
 | 13 | Agentic RAG | ⭐⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | 🔧 Stub |
@@ -453,7 +476,7 @@ Example: `01_naive_rag` is fully production-ready with clean code, detailed docu
 - **Solution**: Ensure `pypdf` is installed (`pip install pypdf`)
 
 **Error: "No module named 'langchain_community.document_loaders'"**
-- **Solution**: Install required dependencies: `pip install -r requirements.txt`
+- **Solution**: Install required dependencies: `pip install .`
 
 ### LMStudio Connection Issues
 

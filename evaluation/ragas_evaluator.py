@@ -17,6 +17,7 @@ Reference: https://docs.ragas.io/en/latest/
 """
 
 import asyncio
+import asyncio.events
 import json
 import logging
 from contextlib import contextmanager
@@ -28,6 +29,45 @@ from core.config_loader import ConfigLoader
 from core.base_rag import BaseRAG
 
 logger = logging.getLogger(__name__)
+
+# Captured at import time, before `ragas` (which unconditionally calls
+# nest_asyncio.apply() at *its own* import time) can ever be imported anywhere
+# in this process. Used by _native_asyncio() below to temporarily undo that
+# monkeypatch around synchronous ragas.evaluate() calls.
+_ORIGINAL_ASYNCIO_TASK = asyncio.Task
+_ORIGINAL_ASYNCIO_FUTURE = asyncio.Future
+_ORIGINAL_ASYNCIO_RUN = asyncio.run
+_ORIGINAL_GET_EVENT_LOOP = asyncio.get_event_loop
+
+
+@contextmanager
+def _native_asyncio():
+    """
+    Temporarily restore the real asyncio.Task/Future/run, undoing nest_asyncio's
+    monkeypatch for the duration of the wrapped block.
+
+    ragas.executor calls nest_asyncio.apply() at import time so ragas.evaluate()
+    can be called from an already-running event loop (e.g. Jupyter). We never
+    need that here -- evaluate() is always invoked from a plain, non-reentrant
+    context -- and nest_asyncio 1.6.0's reimplementation of the event loop predates
+    the asyncio.wait_for/Timeout internals shipped in Python 3.14, so any metric's
+    LLM call raises "RuntimeError: Timeout should be used inside a task" the moment
+    it hits its internal timeout wrapper. Restoring the original Task/Future/run
+    for the call sidesteps the incompatibility entirely.
+    """
+    patched = (asyncio.Task, asyncio.Future, asyncio.run, asyncio.get_event_loop)
+    asyncio.Task = asyncio.tasks.Task = _ORIGINAL_ASYNCIO_TASK
+    asyncio.Future = asyncio.futures.Future = _ORIGINAL_ASYNCIO_FUTURE
+    asyncio.run = _ORIGINAL_ASYNCIO_RUN
+    asyncio.events.get_event_loop = asyncio.get_event_loop = _ORIGINAL_GET_EVENT_LOOP
+    try:
+        yield
+    finally:
+        task, future, run, get_event_loop = patched
+        asyncio.Task = asyncio.tasks.Task = task
+        asyncio.Future = asyncio.futures.Future = future
+        asyncio.run = run
+        asyncio.events.get_event_loop = asyncio.get_event_loop = get_event_loop
 
 
 @contextmanager
@@ -215,7 +255,10 @@ class RAGASEvaluator:
                 context_recall,
                 context_precision,
             )
+        from ragas.llms import LangchainLLMWrapper
+        from ragas.embeddings import LangchainEmbeddingsWrapper
         from core.llm_client import get_langchain_llm
+        from core.embeddings import get_langchain_embeddings
 
         eval_cfg = self.eval_cfg
         metrics_cfg = eval_cfg.get("metrics", {})
@@ -254,20 +297,40 @@ class RAGASEvaluator:
 
         dataset = Dataset.from_dict(data)
 
-        # Configure RAGAS metrics to use LMStudio LLM instead of OpenAI
+        # Configure RAGAS metrics to use LMStudio LLM/embeddings instead of OpenAI.
+        # Metrics require ragas-wrapped LLMs/embeddings (LangchainLLMWrapper /
+        # LangchainEmbeddingsWrapper) -- assigning a raw LangChain object directly
+        # fails since ragas calls wrapper-only methods like llm.set_run_config().
         try:
-            llm = get_langchain_llm()
-            # Set LLM for metrics that need it
+            llm = LangchainLLMWrapper(get_langchain_llm())
+            embeddings = LangchainEmbeddingsWrapper(get_langchain_embeddings())
             for metric in selected_metrics:
                 if hasattr(metric, "llm"):
                     metric.llm = llm
+                if hasattr(metric, "embeddings"):
+                    metric.embeddings = embeddings
         except Exception as e:
             logger.warning(f"Could not configure LLM for RAGAS metrics: {e}")
 
-        with _standard_asyncio_loop():
-            result = evaluate(dataset, metrics=selected_metrics)
+        # LMStudio serves one request at a time locally -- ragas's default
+        # max_workers=16 fires every metric job concurrently, which just queues
+        # them behind each other on the server until the client-side timeout
+        # trips. Run near-sequentially instead, with headroom for slow local
+        # generations (each metric call may itself take 60-90s+ on-device).
+        from ragas.run_config import RunConfig
+        run_config = RunConfig(timeout=300, max_workers=2)
 
-        return dict(result)
+        with _standard_asyncio_loop(), _native_asyncio():
+            result = evaluate(dataset, metrics=selected_metrics, run_config=run_config)
+
+        # EvaluationResult has no dict()/keys() support in ragas >= 0.3 -- pull
+        # the per-metric mean from the pandas view instead.
+        df = result.to_pandas()
+        return {
+            metric.name: float(df[metric.name].mean())
+            for metric in selected_metrics
+            if metric.name in df.columns
+        }
 
     def _fallback_metrics(
             self,

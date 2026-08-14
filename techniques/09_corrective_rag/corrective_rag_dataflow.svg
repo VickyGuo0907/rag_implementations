@@ -1,0 +1,237 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 1400">
+  <defs>
+    <style>
+      * { font-family: "Courier New", monospace; }
+      .title { font-size: 36px; font-weight: 700; fill: #00d9ff; }
+      .phase-title { font-size: 22px; font-weight: 700; fill: #00ffaa; }
+      .stage-title { font-size: 17px; font-weight: 700; }
+      .label { font-size: 15px; fill: #00ffaa; font-weight: 600; }
+      .small-label { font-size: 13px; fill: #00ffaa; font-weight: 600; }
+      .data-label { font-size: 12px; fill: #00d9ff; font-weight: 500; }
+      .phase-label { font-size: 14px; fill: #0099ff; font-style: italic; }
+      .description { font-size: 13px; fill: #00d9ff; opacity: 0.95; }
+      .summary { font-size: 12px; fill: #aaffff; opacity: 0.9; }
+      .note { font-size: 12px; fill: #aaffff; opacity: 0.85; }
+    </style>
+    <marker id="arrowhead-cyan" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#00ffaa" />
+    </marker>
+    <marker id="arrowhead-purple" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#ff00ff" />
+    </marker>
+    <marker id="arrowhead-teal" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#00d9ff" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#00ff00" />
+    </marker>
+    <marker id="arrowhead-yellow" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#ffcc00" />
+    </marker>
+    <marker id="arrowhead-red" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#ff4444" />
+    </marker>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#0a2540" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="1700" height="1400" fill="#0a1628"/>
+  <rect width="1700" height="1400" fill="url(#grid)"/>
+  <text x="850" y="45" class="title" text-anchor="middle" filter="url(#glow)">Corrective RAG Data Flow Architecture</text>
+
+  <!-- OFFLINE PHASE -->
+  <rect x="30" y="70" width="1640" height="280" fill="none" stroke="#0099ff" stroke-width="2.5" stroke-dasharray="8,4" rx="12" opacity="0.6"/>
+  <text x="55" y="108" class="phase-title">[OFFLINE PHASE]</text>
+  <text x="55" y="132" class="phase-label">Indexing &amp; Vector Store Preparation (One-Time — Shared Across All Queries)</text>
+  <rect x="55" y="148" width="1590" height="55" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="6"/>
+  <text x="70" y="168" class="summary" font-weight="600">📌 SUMMARY: Identical to Naive RAG — documents are chunked, embedded, and indexed into a</text>
+  <text x="70" y="188" class="summary">vector store once. CRAG's grading and correction logic only runs in the ONLINE phase below.</text>
+  <g filter="url(#glow)">
+    <rect x="55" y="235" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="60" y="240" width="180" height="90" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="150.0" y="269" class="label" text-anchor="middle" font-size="18">📄 Documents</text>
+    <text x="150.0" y="293" class="data-label" text-anchor="middle">Raw Text</text>
+  </g>
+  <line x1="245" y1="285" x2="315" y2="285" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="252.0" y="271" width="56" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="280.0" y="290" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Split</text>
+  <g filter="url(#glow)">
+    <rect x="315" y="235" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="320" y="240" width="180" height="90" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="410.0" y="269" class="label" text-anchor="middle" font-size="18">✂️ Chunks</text>
+    <text x="410.0" y="293" class="data-label" text-anchor="middle">512 tok, overlap=50</text>
+  </g>
+  <line x1="505" y1="285" x2="575" y2="285" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="512.0" y="271" width="56" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="540.0" y="290" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Embed</text>
+  <g filter="url(#glow)">
+    <rect x="575" y="235" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="580" y="240" width="180" height="90" fill="none" stroke="#aa00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="670.0" y="269" class="label" text-anchor="middle" font-size="18">🧠 Embeddings</text>
+    <text x="670.0" y="293" class="data-label" text-anchor="middle">nomic-embed-text</text>
+  </g>
+  <line x1="765" y1="285" x2="835" y2="285" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="772.0" y="271" width="56" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="800.0" y="290" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Store</text>
+  <g filter="url(#glow)">
+    <rect x="835" y="235" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="840" y="240" width="180" height="90" fill="none" stroke="#00d9ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="930.0" y="269" class="label" text-anchor="middle" font-size="18">💾 Vector Store</text>
+    <text x="930.0" y="293" class="data-label" text-anchor="middle">ChromaDB</text>
+  </g>
+  <text x="1155" y="253" class="note" font-weight="600">💡 Runs once per document set, reused for unlimited queries below</text>
+
+  <!-- ONLINE PHASE -->
+  <text x="55" y="418" class="phase-title">[ONLINE PHASE]</text>
+  <text x="55" y="442" class="phase-label">Retrieve &amp; Grade → Classify (3-Way) → Correct &amp; Generate (Per Query, Single-Pass)</text>
+  <rect x="55" y="458" width="1590" height="70" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="6"/>
+  <text x="70" y="480" class="summary" font-weight="600">📌 SUMMARY: Every candidate is graded once, in a single batched call. The aggregate result</text>
+  <text x="70" y="496" class="summary">determines exactly ONE corrective path — refine-and-use, refine-and-supplement, or</text>
+  <text x="70" y="512" class="summary">discard-and-substitute — with no retry loop, unlike Self-RAG.</text>
+  <rect x="30" y="370" width="1640" height="990" fill="none" stroke="#0099ff" stroke-width="2.5" stroke-dasharray="8,4" rx="12" opacity="0.6"/>
+
+  <!-- Stage 1: Retrieve & Grade -->
+  <rect x="50" y="550" width="1600" height="165" fill="none" stroke="#4ac0ff" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="574" class="stage-title" fill="#4ac0ff">① RETRIEVE &amp; GRADE — Single-Pass Quality Check</text>
+  <g filter="url(#glow)">
+    <rect x="70" y="590" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="75" y="595" width="180" height="90" fill="none" stroke="#ff00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="165.0" y="624" class="label" text-anchor="middle" font-size="16">❓ Query</text>
+    <text x="165.0" y="648" class="data-label" text-anchor="middle">User Input</text>
+  </g>
+  <line x1="260" y1="640" x2="340" y2="640" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="256.0" y="626" width="88" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="300.0" y="645" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Retrieve</text>
+  <g filter="url(#glow)">
+    <rect x="340" y="590" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="345" y="595" width="180" height="90" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="435.0" y="619" class="label" text-anchor="middle" font-size="16">🔍 Candidates</text>
+    <text x="435.0" y="643" class="data-label" text-anchor="middle">vector kNN,</text>
+    <text x="435.0" y="661" class="data-label" text-anchor="middle">k=top_k</text>
+  </g>
+  <line x1="530" y1="640" x2="610" y2="640" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="538.0" y="626" width="64" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="570.0" y="645" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Grade</text>
+  <g filter="url(#glow)">
+    <rect x="610" y="590" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="615" y="595" width="180" height="90" fill="none" stroke="#aa00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="705.0" y="619" class="label" text-anchor="middle" font-size="16">🧮 Relevance Scores</text>
+    <text x="705.0" y="643" class="data-label" text-anchor="middle">one batched call,</text>
+    <text x="705.0" y="661" class="data-label" text-anchor="middle">scores every candidate</text>
+  </g>
+  <text x="860" y="628" class="note">💡 One call grades all candidates — cheaper than one call per doc</text>
+  <text x="860" y="652" class="note">💡 These scores drive the classification below, nothing else</text>
+  <text x="860" y="676" class="note" fill="#00d9ff">💡 Retrieves from the same vector store built offline</text>
+
+  <!-- Stage 2: Classify — Three-Way Branch -->
+  <rect x="50" y="755" width="1600" height="300" fill="none" stroke="#ffcc55" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="779" class="stage-title" fill="#ffcc55">② CLASSIFY — Three-Way Correction Branch</text>
+  <text x="70" y="800" class="note" font-style="italic">(exactly one branch fires per query — mutually exclusive, unlike Query Transform's additive strategies)</text>
+
+  <g filter="url(#glow)">
+    <rect x="70" y="860" width="190" height="90" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="75" y="865" width="180" height="80" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="165.0" y="900" class="label" text-anchor="middle" font-size="16">⚖️ Classify</text>
+    <text x="165.0" y="924" class="data-label" text-anchor="middle">vs. relevance_threshold</text>
+  </g>
+
+  <g filter="url(#glow)">
+    <rect x="340" y="815" width="260" height="65" fill="none" stroke="#00ff00" stroke-width="2.5" rx="8"/>
+    <rect x="344" y="819" width="252" height="57" fill="none" stroke="#00ff00" stroke-width="1.2" opacity="0.4" rx="6"/>
+    <text x="470.0" y="841" class="small-label" text-anchor="middle" font-size="14" fill="#00ff00">✅ CORRECT</text>
+    <text x="470.0" y="861" class="data-label" text-anchor="middle" font-size="10">all candidates relevant</text>
+  </g>
+  <g filter="url(#glow)">
+    <rect x="340" y="898" width="260" height="65" fill="none" stroke="#ffcc00" stroke-width="2.5" rx="8"/>
+    <rect x="344" y="902" width="252" height="57" fill="none" stroke="#ffcc00" stroke-width="1.2" opacity="0.4" rx="6"/>
+    <text x="470.0" y="924" class="small-label" text-anchor="middle" font-size="14" fill="#ffcc00">🟡 AMBIGUOUS</text>
+    <text x="470.0" y="944" class="data-label" text-anchor="middle" font-size="10">some candidates relevant</text>
+  </g>
+  <g filter="url(#glow)">
+    <rect x="340" y="981" width="260" height="65" fill="none" stroke="#ff4444" stroke-width="2.5" rx="8"/>
+    <rect x="344" y="985" width="252" height="57" fill="none" stroke="#ff4444" stroke-width="1.2" opacity="0.4" rx="6"/>
+    <text x="470.0" y="1003" class="small-label" text-anchor="middle" font-size="14" fill="#ff4444">🔴 INCORRECT</text>
+    <text x="470.0" y="1023" class="data-label" text-anchor="middle" font-size="10">none relevant</text>
+  </g>
+
+  <path d="M 260 890 Q 300 855 340 847" stroke="#00ff00" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-green)"/>
+  <path d="M 260 905 L 340 930" stroke="#ffcc00" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-yellow)"/>
+  <path d="M 260 920 Q 300 990 340 1013" stroke="#ff4444" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-red)"/>
+
+  <g filter="url(#glow)">
+    <rect x="660" y="815" width="230" height="231" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="665" y="820" width="220" height="221" fill="none" stroke="#00d9ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="775.0" y="900" class="label" text-anchor="middle" font-size="16">📦 Context Sources</text>
+    <text x="775.0" y="924" class="data-label" text-anchor="middle">refined docs and/or</text>
+    <text x="775.0" y="942" class="data-label" text-anchor="middle">web search results</text>
+    <text x="775.0" y="960" class="data-label" text-anchor="middle">(from whichever branch fired)</text>
+  </g>
+
+  <path d="M 600 847 L 660 880" stroke="#00ff00" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-green)"/>
+  <path d="M 600 930 L 660 930" stroke="#ffcc00" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-yellow)"/>
+  <path d="M 600 1013 L 660 980" stroke="#ff4444" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-red)"/>
+
+  <text x="920" y="845" class="note">💡 Correct: refine and use the internal docs as-is</text>
+  <text x="920" y="869" class="note">💡 Ambiguous: refine the relevant subset AND add web search</text>
+  <text x="920" y="893" class="note">💡 Incorrect: discard internal docs, web search only</text>
+  <text x="920" y="917" class="note">💡 No web search configured? Falls back to parametric knowledge</text>
+
+  <!-- Stage 3: Correct & Generate -->
+  <rect x="50" y="1095" width="1600" height="165" fill="none" stroke="#ff66ff" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="1119" class="stage-title" fill="#ff66ff">③ GENERATE — Grounded or Parametric Answer</text>
+  <g filter="url(#glow)">
+    <rect x="70" y="1135" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="75" y="1140" width="180" height="90" fill="none" stroke="#ff00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="165.0" y="1164" class="label" text-anchor="middle" font-size="16">📥 Assemble</text>
+    <text x="165.0" y="1188" class="data-label" text-anchor="middle">refined + web results</text>
+    <text x="165.0" y="1206" class="data-label" text-anchor="middle">(may be empty)</text>
+  </g>
+  <line x1="260" y1="1185" x2="340" y2="1185" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="256.0" y="1171" width="88" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="300.0" y="1190" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Generate</text>
+  <g filter="url(#glow)">
+    <rect x="340" y="1135" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="345" y="1140" width="180" height="90" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="435.0" y="1159" class="label" text-anchor="middle" font-size="16">📝 Generate</text>
+    <text x="435.0" y="1183" class="data-label" text-anchor="middle">from context, or</text>
+    <text x="435.0" y="1201" class="data-label" text-anchor="middle">parametric fallback if empty</text>
+  </g>
+  <line x1="530" y1="1185" x2="610" y2="1185" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="538.0" y="1171" width="64" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="570.0" y="1190" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Ground</text>
+  <g filter="url(#glow)">
+    <rect x="610" y="1135" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="615" y="1140" width="180" height="90" fill="none" stroke="#00ff00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="705.0" y="1164" class="label" text-anchor="middle" font-size="16">✅ Answer</text>
+    <text x="705.0" y="1188" class="data-label" text-anchor="middle">grounded or</text>
+    <text x="705.0" y="1206" class="data-label" text-anchor="middle">best-effort</text>
+  </g>
+  <text x="860" y="1163" class="note">💡 Empty context (no docs, no web search) still returns an honest answer</text>
+  <text x="860" y="1187" class="note">💡 This corrective decision happens once — no retry loop like Self-RAG</text>
+
+  <!-- Stage transitions -->
+  <path d="M 705.0 690 Q 110 775 165.0 860" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="103.0" y="763.5" width="124" height="24" fill="#0a1628" opacity="0.95"/>
+  <text x="165" y="781.5" class="data-label" text-anchor="middle" font-size="12" font-weight="600" fill="#ff00ff">scores →</text>
+
+  <path d="M 775.0 1046 Q 300 1090 165.0 1135" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="238.0" y="1078.5" width="124" height="24" fill="#0a1628" opacity="0.95"/>
+  <text x="300" y="1096.5" class="data-label" text-anchor="middle" font-size="12" font-weight="600" fill="#ff00ff">context →</text>
+
+  <!-- LEGEND -->
+  <text x="55" y="1340" class="phase-title">[LEGEND]</text>
+  <line x1="250" y1="1332" x2="295" y2="1332" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <text x="310" y="1337" class="data-label" font-size="12" font-weight="600">Primary Data Flow</text>
+  <line x1="530" y1="1332" x2="575" y2="1332" stroke="#ff00ff" stroke-width="3" stroke-dasharray="7,5" marker-end="url(#arrowhead-purple)"/>
+  <text x="590" y="1337" class="data-label" font-size="12" font-weight="600">Stage Transition</text>
+  <line x1="800" y1="1332" x2="845" y2="1332" stroke="#ffcc00" stroke-width="3" marker-end="url(#arrowhead-yellow)"/>
+  <text x="860" y="1337" class="data-label" font-size="12" font-weight="600">Correction Branch (exclusive)</text>
+</svg>

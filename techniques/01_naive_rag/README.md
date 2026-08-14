@@ -191,10 +191,10 @@ result.print_summary()
 
 ```bash
 # LangChain
-python scripts/run_technique.py --technique naive_rag --framework langchain --query "Your question"
+python main.py run --technique naive_rag --framework langchain --query "Your question"
 
 # LlamaIndex
-python scripts/run_technique.py --technique naive_rag --framework llamaindex --query "Your question"
+python main.py run --technique naive_rag --framework llamaindex --query "Your question"
 ```
 
 ---

@@ -10,4 +10,4 @@ if [ ! -f "$VENV_PYTHON" ]; then
 fi
 
 # Run with venv Python
-exec "$VENV_PYTHON" "$SCRIPT_DIR/scripts/run_technique.py" "$@"
+exec "$VENV_PYTHON" "$SCRIPT_DIR/main.py" "$@"

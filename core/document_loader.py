@@ -97,8 +97,9 @@ def load_texts(texts: List[str], metadatas: Optional[List[Dict]] = None) -> List
         metadatas: Optional metadata dicts (same length as texts).
     """
     from langchain_core.documents import Document as LCDocument
-    metas = metadatas or [{}] * len(texts)
-    return [LCDocument(page_content=t, metadata=m) for t, m in zip(texts, metas)]
+    if metadatas is None:
+        metadatas = [{} for _ in texts]
+    return [LCDocument(page_content=t, metadata=m) for t, m in zip(texts, metadatas)]
 
 
 # ---------------------------------------------------------------------------

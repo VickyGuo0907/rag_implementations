@@ -23,6 +23,7 @@ from core.config_loader import ConfigLoader
 from core.llm_client import get_langchain_llm
 from core.embeddings import get_langchain_embeddings
 from core.document_loader import load_texts, get_text_splitter
+from core.vector_store import build_langchain_vector_store
 
 logger = logging.getLogger(__name__)
 
@@ -81,37 +82,25 @@ class NaiveRAGLangChain(BaseRAG):
 
     def index(self, documents: List[str], metadatas: Optional[List[Dict]] = None) -> None:
         """
-        Chunk, embed, and store documents in ChromaDB.
+        Chunk, embed, and store documents in the configured vector store.
 
         Args:
             documents: Raw text strings to index.
             metadatas: Optional per-document metadata.
         """
-        from langchain_chroma import Chroma
-        from langchain_core.documents import Document as LCDocument
-
         logger.info(f"[NaiveRAG/LC] Indexing {len(documents)} documents...")
 
         # 1. Wrap raw strings in LangChain Document objects
-        if metadatas is None:
-            metadatas = [{}] * len(documents)
-        lc_docs = [
-            LCDocument(page_content=text, metadata=meta)
-            for text, meta in zip(documents, metadatas)
-        ]
+        lc_docs = load_texts(documents, metadatas)
 
         # 2. Chunk documents
         chunks = self.text_splitter.split_documents(lc_docs)
         logger.info(f"[NaiveRAG/LC] Split into {len(chunks)} chunks")
 
-        # 3. Embed and store in ChromaDB
-        cfg = ConfigLoader.get()
-        vs_cfg = cfg.vector_store
-        self.vector_store = Chroma.from_documents(
-            documents=chunks,
-            embedding=self.embeddings,
-            collection_name=f"naive_rag_{vs_cfg.get('collection_name', 'docs')}",
-            persist_directory=vs_cfg.get("persist_directory", "./data/vector_store"),
+        # 3. Embed and store via the configured vector store provider
+        self.vector_store = build_langchain_vector_store(
+            chunks,
+            collection_name="naive_rag",
         )
 
         # 4. Build retriever

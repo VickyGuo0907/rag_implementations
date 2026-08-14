@@ -10,7 +10,8 @@ import streamlit as st
 # Ensure project root is in path (matches main.py)
 sys.path.insert(0, str(Path(__file__).parent))
 
-from main import TECHNIQUE_CLASSES, TECHNIQUES_METADATA, initialize_rag, load_and_index_documents
+from main import initialize_rag, load_and_index_documents
+from techniques.registry import TECHNIQUES, is_registered
 from evaluation.ragas_evaluator import RAGASEvaluator
 
 
@@ -37,12 +38,12 @@ def render_sidebar() -> tuple[str, str, str, bool]:
 
     technique = st.sidebar.selectbox(
         "Technique",
-        options=list(TECHNIQUES_METADATA.keys()),
-        format_func=lambda t: f"{TECHNIQUES_METADATA[t]['name']} — {TECHNIQUES_METADATA[t]['description'][:40]}...",
+        options=list(TECHNIQUES.keys()),
+        format_func=lambda t: f"{TECHNIQUES[t]['name']} — {TECHNIQUES[t]['description'][:40]}...",
     )
 
-    meta = TECHNIQUES_METADATA[technique]
-    st.sidebar.caption(f"Status: {meta['status']} | Complexity: {meta['complexity']} | Latency: {meta['latency']}")
+    meta = TECHNIQUES[technique]
+    st.sidebar.caption(f"Status: {meta['status']} | Complexity: {'⭐' * meta['complexity']} | Latency: {meta['latency']}")
 
     framework = st.sidebar.radio("Framework", options=["LangChain", "LlamaIndex"], horizontal=True)
     framework_key = framework.lower().replace("langchain", "langchain").replace("llamaindex", "llamaindex")
@@ -68,7 +69,7 @@ def handle_initialization(technique: str, framework: str, doc_path: str, clicked
         return
 
     # Validate technique+framework combo exists
-    if (technique, framework) not in TECHNIQUE_CLASSES:
+    if not is_registered(technique, framework):
         st.session_state["init_error"] = f"Invalid combo: {technique} + {framework}"
         st.sidebar.error(f"❌ {st.session_state['init_error']}")
         return

@@ -306,24 +306,3 @@ class CorrectiveRAGLangChain(BaseRAG):
             },
         )
 
-
-if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
-
-    docs = [
-        "The Zylophane Initiative was launched in 2031 by the fictional Meridian Institute to study synthetic coral reefs.",  # noqa: E501
-        "The Glimmerprobe sensor, developed for the Zylophane Initiative, has a detection range of 40 meters and reports readings every 12 seconds.",  # noqa: E501
-        "ReefNet mesh network nodes are solar powered and were deployed across 14 test sites in the fictional Azuria Marine Reserve.",  # noqa: E501
-    ]
-
-    rag = CorrectiveRAGLangChain(config=ConfigLoader.get()._config)
-    rag.index(docs)
-
-    # Should classify as "correct" — directly answerable from indexed docs
-    result = rag.query("What sensor does the Zylophane Initiative use?")
-    result.print_summary()
-
-    # Should classify as "incorrect" — nothing in the corpus is about this
-    result2 = rag.query("What is the capital of France?")
-    result2.print_summary()

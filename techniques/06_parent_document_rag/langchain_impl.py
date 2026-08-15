@@ -139,19 +139,3 @@ class ParentDocumentRAGLangChain(BaseRAG):
             },
         )
 
-
-if __name__ == "__main__":
-    import sys
-    sys.path.insert(0, str(__import__("pathlib").Path(__file__).parent.parent.parent))
-
-    docs = [
-        "Quantum entanglement is a phenomenon where two or more particles become correlated such that the quantum state of each particle cannot be described independently of the others, even when separated by large distances. "  # noqa: E501
-        "This correlation persists regardless of the distance separating the particles, a property Einstein famously called 'spooky action at a distance.' "  # noqa: E501
-        "Bell's theorem proves that quantum mechanics predicts correlations between measurements that cannot be explained by local hidden variable theories, providing a rigorous mathematical foundation for the non-classical nature of entanglement. "  # noqa: E501
-        "Quantum computing leverages superposition and entanglement to perform computations that would be intractable for classical computers, using entangled qubits to represent and manipulate exponentially large state spaces.",  # noqa: E501
-    ]
-
-    rag = ParentDocumentRAGLangChain(config=ConfigLoader.get()._config)
-    rag.index(docs)
-    result = rag.query("How does entanglement help quantum computers and what does Bell's theorem have to do with it?")  # noqa: E501
-    result.print_summary()

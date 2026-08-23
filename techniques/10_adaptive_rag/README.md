@@ -69,6 +69,8 @@ Identical to Naive RAG. All three online strategies share the same index; only *
 
 Exactly one classification call runs per query, then exactly one strategy executes. The chosen complexity level and strategy are returned in `RAGResult.metadata` (`complexity`, `routed_strategy`) and in the routing step under `intermediate_steps`.
 
+![Adaptive RAG Data Flow](adaptive_rag_dataflow.png)
+
 ---
 
 ## Implementation Files

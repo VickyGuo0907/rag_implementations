@@ -1,0 +1,275 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 1430">
+  <defs>
+    <style>
+      * { font-family: "Courier New", monospace; }
+      .title { font-size: 36px; font-weight: 700; fill: #00d9ff; }
+      .phase-title { font-size: 22px; font-weight: 700; fill: #00ffaa; }
+      .stage-title { font-size: 17px; font-weight: 700; }
+      .label { font-size: 15px; fill: #00ffaa; font-weight: 600; }
+      .small-label { font-size: 13px; fill: #00ffaa; font-weight: 600; }
+      .data-label { font-size: 12px; fill: #00d9ff; font-weight: 500; }
+      .phase-label { font-size: 14px; fill: #0099ff; font-style: italic; }
+      .description { font-size: 13px; fill: #00d9ff; opacity: 0.95; }
+      .summary { font-size: 12px; fill: #aaffff; opacity: 0.9; }
+      .note { font-size: 12px; fill: #aaffff; opacity: 0.85; }
+    </style>
+    <marker id="arrowhead-cyan" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#00ffaa" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#00ff00" />
+    </marker>
+    <marker id="arrowhead-yellow" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#ffcc00" />
+    </marker>
+    <marker id="arrowhead-purple" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#ff00ff" />
+    </marker>
+    <marker id="arrowhead-pink" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#ff66ff" />
+    </marker>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#0a2540" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="1700" height="1430" fill="#0a1628"/>
+  <rect width="1700" height="1430" fill="url(#grid)"/>
+  <text x="850" y="45" class="title" text-anchor="middle" filter="url(#glow)">Adaptive RAG Data Flow Architecture</text>
+
+  <!-- OFFLINE PHASE -->
+  <rect x="30" y="70" width="1640" height="280" fill="none" stroke="#0099ff" stroke-width="2.5" stroke-dasharray="8,4" rx="12" opacity="0.6"/>
+  <text x="55" y="108" class="phase-title">[OFFLINE PHASE]</text>
+  <text x="55" y="132" class="phase-label">Indexing &amp; Vector Store Preparation (One-Time — Shared Across All Queries)</text>
+  <rect x="55" y="148" width="1590" height="55" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="6"/>
+  <text x="70" y="168" class="summary" font-weight="600">📌 SUMMARY: Identical to Naive RAG — documents are chunked, embedded, and indexed into a</text>
+  <text x="70" y="188" class="summary">vector store once. All three online strategies share this index; only WHETHER it is queried differs.</text>
+  <g filter="url(#glow)">
+    <rect x="55" y="235" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="60" y="240" width="180" height="90" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="150" y="269" class="label" text-anchor="middle" font-size="18">📄 Documents</text>
+    <text x="150" y="293" class="data-label" text-anchor="middle">Raw Text</text>
+  </g>
+  <line x1="245" y1="285" x2="315" y2="285" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="252" y="271" width="56" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="280" y="290" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Split</text>
+  <g filter="url(#glow)">
+    <rect x="315" y="235" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="320" y="240" width="180" height="90" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="410" y="269" class="label" text-anchor="middle" font-size="18">✂️ Chunks</text>
+    <text x="410" y="293" class="data-label" text-anchor="middle">512 tok, overlap=50</text>
+  </g>
+  <line x1="505" y1="285" x2="575" y2="285" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="512" y="271" width="56" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="540" y="290" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Embed</text>
+  <g filter="url(#glow)">
+    <rect x="575" y="235" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="580" y="240" width="180" height="90" fill="none" stroke="#aa00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="670" y="269" class="label" text-anchor="middle" font-size="18">🧠 Embeddings</text>
+    <text x="670" y="293" class="data-label" text-anchor="middle">nomic-embed-text</text>
+  </g>
+  <line x1="765" y1="285" x2="835" y2="285" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="772" y="271" width="56" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="800" y="290" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Store</text>
+  <g filter="url(#glow)">
+    <rect x="835" y="235" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="840" y="240" width="180" height="90" fill="none" stroke="#00d9ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="930" y="269" class="label" text-anchor="middle" font-size="18">💾 Vector Store</text>
+    <text x="930" y="293" class="data-label" text-anchor="middle">ChromaDB</text>
+  </g>
+  <text x="1155" y="253" class="note" font-weight="600">💡 Runs once per document set, reused for unlimited queries below</text>
+
+  <!-- ONLINE PHASE -->
+  <text x="55" y="418" class="phase-title">[ONLINE PHASE]</text>
+  <text x="55" y="442" class="phase-label">Classify Complexity → Route to Configured Strategy → Generate (Per Query)</text>
+  <rect x="55" y="458" width="1590" height="70" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="6"/>
+  <text x="70" y="480" class="summary" font-weight="600">📌 SUMMARY: One classification call sorts each query into simple / moderate / complex, then</text>
+  <text x="70" y="496" class="summary">exactly ONE configured strategy runs — parametric knowledge, single-pass retrieval, or multi-query</text>
+  <text x="70" y="512" class="summary">fusion. Cost scales with difficulty; every result reports which route fired.</text>
+  <rect x="30" y="370" width="1640" height="985" fill="none" stroke="#0099ff" stroke-width="2.5" stroke-dasharray="8,4" rx="12" opacity="0.6"/>
+
+  <!-- Stage 1: Classify -->
+  <rect x="50" y="545" width="1600" height="250" fill="none" stroke="#4ac0ff" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="569" class="stage-title" fill="#4ac0ff">① CLASSIFY — Route by Query Complexity</text>
+  <g filter="url(#glow)">
+    <rect x="70" y="585" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="75" y="590" width="180" height="90" fill="none" stroke="#ff00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="165" y="618" class="label" text-anchor="middle" font-size="16">❓ Query</text>
+    <text x="165" y="642" class="data-label" text-anchor="middle">User Input</text>
+  </g>
+  <line x1="260" y1="635" x2="340" y2="635" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="256" y="621" width="88" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="300" y="640" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Classify</text>
+  <g filter="url(#glow)">
+    <rect x="340" y="585" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="345" y="590" width="180" height="90" fill="none" stroke="#aa00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="435" y="613" class="label" text-anchor="middle" font-size="16">⚖️ Complexity Check</text>
+    <text x="435" y="637" class="data-label" text-anchor="middle">one LLM call,</text>
+    <text x="435" y="655" class="data-label" text-anchor="middle">one-word verdict</text>
+  </g>
+
+  <g filter="url(#glow)">
+    <rect x="610" y="558" width="260" height="65" fill="none" stroke="#00ff00" stroke-width="2.5" rx="8"/>
+    <rect x="614" y="562" width="252" height="57" fill="none" stroke="#00ff00" stroke-width="1.2" opacity="0.4" rx="6"/>
+    <text x="740" y="580" class="small-label" text-anchor="middle" font-size="14" fill="#00ff00">🟢 SIMPLE</text>
+    <text x="740" y="600" class="data-label" text-anchor="middle" font-size="10">factual / common-knowledge</text>
+  </g>
+  <g filter="url(#glow)">
+    <rect x="610" y="640" width="260" height="65" fill="none" stroke="#ffcc00" stroke-width="2.5" rx="8"/>
+    <rect x="614" y="644" width="252" height="57" fill="none" stroke="#ffcc00" stroke-width="1.2" opacity="0.4" rx="6"/>
+    <text x="740" y="662" class="small-label" text-anchor="middle" font-size="14" fill="#ffcc00">🟡 MODERATE</text>
+    <text x="740" y="682" class="data-label" text-anchor="middle" font-size="10">standard corpus question</text>
+  </g>
+  <g filter="url(#glow)">
+    <rect x="610" y="722" width="260" height="65" fill="none" stroke="#ff66ff" stroke-width="2.5" rx="8"/>
+    <rect x="614" y="726" width="252" height="57" fill="none" stroke="#ff66ff" stroke-width="1.2" opacity="0.4" rx="6"/>
+    <text x="740" y="744" class="small-label" text-anchor="middle" font-size="14" fill="#ff66ff">🟣 COMPLEX</text>
+    <text x="740" y="764" class="data-label" text-anchor="middle" font-size="10">multi-part / comparative / multi-hop</text>
+  </g>
+
+  <path d="M 530 618 Q 570 592 610 590" stroke="#00ff00" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-green)"/>
+  <path d="M 530 640 L 610 672" stroke="#ffcc00" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-yellow)"/>
+  <path d="M 530 662 Q 570 720 610 754" stroke="#ff66ff" stroke-width="2.5" fill="none" marker-end="url(#arrowhead-pink)"/>
+
+  <text x="910" y="585" class="note">💡 Routing table lives in config.yaml rag_techniques.adaptive_rag.strategies:</text>
+  <text x="910" y="609" class="note" fill="#00ff00">💡 simple   → no_retrieval   (parametric answer, zero search)</text>
+  <text x="910" y="633" class="note" fill="#ffcc00">💡 moderate → naive_rag     (single dense retrieval pass)</text>
+  <text x="910" y="657" class="note" fill="#ff66ff">💡 complex  → fusion_rag    (multi-query expansion + RRF)</text>
+  <text x="910" y="681" class="note">💡 Unparseable verdict defaults to 'moderate' — safe middle ground</text>
+
+  <!-- Stage 2: Execute Routed Strategy -->
+  <rect x="50" y="815" width="1600" height="330" fill="none" stroke="#ffcc55" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="839" class="stage-title" fill="#ffcc55">② EXECUTE ROUTED STRATEGY — Exactly One Lane Fires Per Query</text>
+
+  <!-- Lane A: SIMPLE -->
+  <rect x="70" y="850" width="1560" height="80" fill="none" stroke="#00ff00" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="85" y="897" class="small-label" fill="#00ff00" font-size="15">🟢 SIMPLE → no_retrieval</text>
+  <g filter="url(#glow)">
+    <rect x="300" y="862" width="240" height="56" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="304" y="866" width="232" height="48" fill="none" stroke="#00ff00" stroke-width="1.2" opacity="0.4" rx="8"/>
+    <text x="420" y="884" class="label" text-anchor="middle" font-size="14">🧠 Parametric Answer</text>
+    <text x="420" y="904" class="data-label" text-anchor="middle">LLM knowledge only</text>
+  </g>
+  <text x="580" y="880" class="note">💡 Vector store never queried — cheapest path</text>
+  <text x="580" y="904" class="note">💡 Trade-off: can't cite sources or see new facts</text>
+
+  <!-- Lane B: MODERATE -->
+  <rect x="70" y="945" width="1560" height="80" fill="none" stroke="#ffcc00" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="85" y="992" class="small-label" fill="#ffcc00" font-size="15">🟡 MODERATE → naive_rag</text>
+  <g filter="url(#glow)">
+    <rect x="300" y="957" width="240" height="56" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="304" y="961" width="232" height="48" fill="none" stroke="#ffcc00" stroke-width="1.2" opacity="0.4" rx="8"/>
+    <text x="420" y="979" class="label" text-anchor="middle" font-size="14">🔍 Dense Retrieval</text>
+    <text x="420" y="999" class="data-label" text-anchor="middle">vector kNN, k=top_k</text>
+  </g>
+  <line x1="540" y1="985" x2="600" y2="985" stroke="#00ffaa" stroke-width="3" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="600" y="957" width="220" height="56" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="604" y="961" width="212" height="48" fill="none" stroke="#ffcc00" stroke-width="1.2" opacity="0.4" rx="8"/>
+    <text x="710" y="979" class="label" text-anchor="middle" font-size="14">📄 top_k Context</text>
+    <text x="710" y="999" class="data-label" text-anchor="middle">single-pass results</text>
+  </g>
+  <text x="860" y="980" class="note">💡 Standard RAG path — one retrieve, one generate</text>
+
+  <!-- Lane C: COMPLEX -->
+  <rect x="70" y="1040" width="1560" height="100" fill="none" stroke="#ff66ff" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="85" y="1097" class="small-label" fill="#ff66ff" font-size="15">🟣 COMPLEX → fusion_rag</text>
+  <g filter="url(#glow)">
+    <rect x="290" y="1052" width="200" height="64" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="294" y="1056" width="192" height="56" fill="none" stroke="#ff66ff" stroke-width="1.2" opacity="0.4" rx="8"/>
+    <text x="390" y="1074" class="label" text-anchor="middle" font-size="14">🔀 Fusion Strategy</text>
+    <text x="390" y="1094" class="data-label" text-anchor="middle">multi-query expansion</text>
+  </g>
+  <line x1="490" y1="1084" x2="535" y2="1084" stroke="#00ffaa" stroke-width="3" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="535" y="1052" width="200" height="64" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="539" y="1056" width="192" height="56" fill="none" stroke="#ffaa00" stroke-width="1.2" opacity="0.4" rx="8"/>
+    <text x="635" y="1074" class="label" text-anchor="middle" font-size="14">✍️ Query Variants</text>
+    <text x="635" y="1094" class="data-label" text-anchor="middle">N rephrasings</text>
+  </g>
+  <line x1="735" y1="1084" x2="780" y2="1084" stroke="#00ffaa" stroke-width="3" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="780" y="1052" width="200" height="64" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="784" y="1056" width="192" height="56" fill="none" stroke="#aa00ff" stroke-width="1.2" opacity="0.4" rx="8"/>
+    <text x="880" y="1074" class="label" text-anchor="middle" font-size="14">🔍 Retrieve Each</text>
+    <text x="880" y="1094" class="data-label" text-anchor="middle">per-variant kNN</text>
+  </g>
+  <line x1="980" y1="1084" x2="1025" y2="1084" stroke="#00ffaa" stroke-width="3" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="1025" y="1052" width="200" height="64" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="1029" y="1056" width="192" height="56" fill="none" stroke="#00d9ff" stroke-width="1.2" opacity="0.4" rx="8"/>
+    <text x="1125" y="1074" class="label" text-anchor="middle" font-size="14">🧮 RRF Fusion</text>
+    <text x="1125" y="1094" class="data-label" text-anchor="middle">reciprocal rank merge</text>
+  </g>
+  <text x="1265" y="1078" class="note">💡 Same machinery as 05 Fusion RAG,</text>
+  <text x="1265" y="1102" class="note">💡 kept self-contained in this module</text>
+
+  <!-- Stage transitions: routing decisions -->
+  <path d="M 740 623 Q 420 760 300 878" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="468" y="750" width="84" height="24" fill="#0a1628" opacity="0.95"/>
+  <text x="510" y="768" class="data-label" text-anchor="middle" font-size="12" font-weight="600" fill="#ff00ff">route →</text>
+
+  <path d="M 740 705 Q 480 850 300 985" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="468" y="838" width="84" height="24" fill="#0a1628" opacity="0.95"/>
+  <text x="510" y="856" class="data-label" text-anchor="middle" font-size="12" font-weight="600" fill="#ff00ff">route →</text>
+
+  <path d="M 740 787 Q 480 950 290 1084" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="458" y="930" width="84" height="24" fill="#0a1628" opacity="0.95"/>
+  <text x="500" y="948" class="data-label" text-anchor="middle" font-size="12" font-weight="600" fill="#ff00ff">route →</text>
+
+  <!-- Stage 3: Generate -->
+  <rect x="50" y="1165" width="1600" height="165" fill="none" stroke="#ff66ff" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="1189" class="stage-title" fill="#ff66ff">③ GENERATE — Grounded or Parametric, Always With Routing Metadata</text>
+  <g filter="url(#glow)">
+    <rect x="70" y="1205" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="75" y="1210" width="180" height="90" fill="none" stroke="#ff00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="165" y="1229" class="label" text-anchor="middle" font-size="16">📥 Assemble</text>
+    <text x="165" y="1253" class="data-label" text-anchor="middle">context may be empty</text>
+    <text x="165" y="1271" class="data-label" text-anchor="middle">(simple route)</text>
+  </g>
+  <line x1="260" y1="1255" x2="340" y2="1255" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="256" y="1241" width="88" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="300" y="1260" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Generate</text>
+  <g filter="url(#glow)">
+    <rect x="340" y="1205" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="345" y="1210" width="180" height="90" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="435" y="1229" class="label" text-anchor="middle" font-size="16">📝 Generate</text>
+    <text x="435" y="1253" class="data-label" text-anchor="middle">grounded or</text>
+    <text x="435" y="1271" class="data-label" text-anchor="middle">parametric</text>
+  </g>
+  <line x1="530" y1="1255" x2="610" y2="1255" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="532" y="1241" width="76" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="570" y="1260" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Attach</text>
+  <g filter="url(#glow)">
+    <rect x="610" y="1205" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="615" y="1210" width="180" height="90" fill="none" stroke="#00ff00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="705" y="1229" class="label" text-anchor="middle" font-size="16">✅ Answer</text>
+    <text x="705" y="1253" class="data-label" text-anchor="middle">+ complexity,</text>
+    <text x="705" y="1271" class="data-label" text-anchor="middle">routed_strategy metadata</text>
+  </g>
+  <text x="860" y="1233" class="note">💡 Simple queries return answers with zero retrieved sources — by design</text>
+  <text x="860" y="1257" class="note">💡 Every result reports which strategy ran, so routing quality is auditable</text>
+
+  <!-- Stage transition: strategies -> generate -->
+  <path d="M 850 1145 Q 450 1170 265 1252" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="430" y="1160" width="104" height="24" fill="#0a1628" opacity="0.95"/>
+  <text x="482" y="1178" class="data-label" text-anchor="middle" font-size="12" font-weight="600" fill="#ff00ff">context →</text>
+
+  <!-- LEGEND -->
+  <text x="55" y="1400" class="phase-title">[LEGEND]</text>
+  <line x1="250" y1="1392" x2="295" y2="1392" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <text x="310" y="1397" class="data-label" font-size="12" font-weight="600">Primary Data Flow</text>
+  <line x1="530" y1="1392" x2="575" y2="1392" stroke="#ff00ff" stroke-width="3" stroke-dasharray="7,5" marker-end="url(#arrowhead-purple)"/>
+  <text x="590" y="1397" class="data-label" font-size="12" font-weight="600">Routing Decision (exclusive)</text>
+  <rect x="830" y="1384" width="16" height="16" fill="none" stroke="#00ff00" stroke-width="2.5"/>
+  <rect x="852" y="1384" width="16" height="16" fill="none" stroke="#ffcc00" stroke-width="2.5"/>
+  <rect x="874" y="1384" width="16" height="16" fill="none" stroke="#ff66ff" stroke-width="2.5"/>
+  <text x="900" y="1397" class="data-label" font-size="12" font-weight="600">Complexity Tier (simple / moderate / complex)</text>
+</svg>

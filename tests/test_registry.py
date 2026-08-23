@@ -26,11 +26,11 @@ def test_all_fourteen_techniques_present():
 
 
 def test_implemented_vs_stub_counts():
-    """09 techniques implemented, 05 stubs."""
+    """10 techniques implemented, 04 stubs."""
     implemented = get_techniques(status="implemented")
     stubs = get_techniques(status="stub")
-    assert len(implemented) == 9
-    assert len(stubs) == 5
+    assert len(implemented) == 10
+    assert len(stubs) == 4
 
 
 def test_implemented_techniques_have_both_frameworks():
@@ -61,8 +61,15 @@ def test_load_class_unknown_combo_raises_keyerror():
 
 def test_is_registered_stub_technique():
     """Stub techniques are registered for zero frameworks."""
-    assert not is_registered("adaptive_rag", "langchain")
-    assert not is_implemented("adaptive_rag")
+    assert not is_registered("graph_rag", "langchain")
+    assert not is_implemented("graph_rag")
+
+
+def test_adaptive_rag_is_registered_and_routable():
+    """Adaptive RAG is fully implemented for both frameworks."""
+    assert is_implemented("adaptive_rag")
+    assert is_registered("adaptive_rag", "langchain")
+    assert is_registered("adaptive_rag", "llamaindex")
 
 
 def test_class_files_exist_on_disk():

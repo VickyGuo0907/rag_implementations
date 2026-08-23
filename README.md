@@ -36,7 +36,7 @@ RAG_technique_summary/
 │   ├── 07_reranking_rag/              ✅ Full implementation
 │   ├── 08_self_rag/                   ✅ Full implementation
 │   ├── 09_corrective_rag/             ✅ Full implementation
-│   ├── 10_adaptive_rag/               🔧 Stub — pattern established
+│   ├── 10_adaptive_rag/               ✅ Full implementation
 │   ├── 11_graph_rag/                  🔧 Stub
 │   ├── 12_raptor_rag/                 🔧 Stub
 │   ├── 13_agentic_rag/                🔧 Stub
@@ -321,7 +321,7 @@ Introduces actual control flow: the pipeline critiques its own output, grades re
 |---|-----------|:----------:|:-------:|:--------:|:------:|
 | 08 | Self-RAG | ⭐⭐⭐⭐ | 🔴 High | 🟢 High | ✅ Done |
 | 09 | Corrective RAG | ⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | ✅ Done |
-| 10 | Adaptive RAG | ⭐⭐⭐ | 🟡 Varies | 🟢 High | 🔧 Stub |
+| 10 | Adaptive RAG | ⭐⭐⭐ | 🟡 Varies | 🟢 High | ✅ Done |
 
 #### Tier 4 — Structural & Specialized
 Needs fundamentally different data structures or machinery — knowledge graphs, hierarchical cluster trees, tool-using agents, cross-modal content — rather than being a retrieval/generation variant.

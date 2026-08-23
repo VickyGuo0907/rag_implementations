@@ -116,8 +116,8 @@ TECHNIQUES: dict[str, dict] = {
         "complexity": 3,
         "latency": "Varies",
         "accuracy": "High",
-        "status": "stub",
-        "description": "Classify query complexity, route to the optimal RAG strategy",
+        "status": "implemented",
+        "description": "Classify query complexity, route to no-retrieval / naive / fusion strategy",  # noqa: E501
     },
     # ---- Tier 4 — Structural & Specialized ----
     "graph_rag": {
@@ -181,6 +181,8 @@ IMPLEMENTATIONS: dict[tuple[str, str], str] = {
     ("self_rag", "llamaindex"): "techniques.08_self_rag.llamaindex_impl.SelfRAGLlamaIndex",
     ("corrective_rag", "langchain"): "techniques.09_corrective_rag.langchain_impl.CorrectiveRAGLangChain",  # noqa: E501
     ("corrective_rag", "llamaindex"): "techniques.09_corrective_rag.llamaindex_impl.CorrectiveRAGLlamaIndex",  # noqa: E501
+    ("adaptive_rag", "langchain"): "techniques.10_adaptive_rag.langchain_impl.AdaptiveRAGLangChain",
+    ("adaptive_rag", "llamaindex"): "techniques.10_adaptive_rag.llamaindex_impl.AdaptiveRAGLlamaIndex",  # noqa: E501
 }
 
 

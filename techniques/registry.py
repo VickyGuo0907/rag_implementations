@@ -126,8 +126,8 @@ TECHNIQUES: dict[str, dict] = {
         "complexity": 5,
         "latency": "High",
         "accuracy": "Very High",
-        "status": "stub",
-        "description": "Extract entities/relations, build a knowledge graph, query with graph traversal",  # noqa: E501
+        "status": "implemented",
+        "description": "Extract entities/relations into a knowledge graph, answer via graph traversal",  # noqa: E501
     },
     "raptor_rag": {
         "name": "RAPTOR",
@@ -183,6 +183,8 @@ IMPLEMENTATIONS: dict[tuple[str, str], str] = {
     ("corrective_rag", "llamaindex"): "techniques.09_corrective_rag.llamaindex_impl.CorrectiveRAGLlamaIndex",  # noqa: E501
     ("adaptive_rag", "langchain"): "techniques.10_adaptive_rag.langchain_impl.AdaptiveRAGLangChain",
     ("adaptive_rag", "llamaindex"): "techniques.10_adaptive_rag.llamaindex_impl.AdaptiveRAGLlamaIndex",  # noqa: E501
+    ("graph_rag", "langchain"): "techniques.11_graph_rag.langchain_impl.GraphRAGLangChain",
+    ("graph_rag", "llamaindex"): "techniques.11_graph_rag.llamaindex_impl.GraphRAGLlamaIndex",
 }
 
 

@@ -1,0 +1,262 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 1430">
+  <defs>
+    <style>
+      * { font-family: "Courier New", monospace; }
+      .title { font-size: 36px; font-weight: 700; fill: #00d9ff; }
+      .phase-title { font-size: 22px; font-weight: 700; fill: #00ffaa; }
+      .stage-title { font-size: 17px; font-weight: 700; }
+      .label { font-size: 15px; fill: #00ffaa; font-weight: 600; }
+      .small-label { font-size: 13px; fill: #00ffaa; font-weight: 600; }
+      .data-label { font-size: 12px; fill: #00d9ff; font-weight: 500; }
+      .phase-label { font-size: 14px; fill: #0099ff; font-style: italic; }
+      .description { font-size: 13px; fill: #00d9ff; opacity: 0.95; }
+      .summary { font-size: 12px; fill: #aaffff; opacity: 0.9; }
+      .note { font-size: 12px; fill: #aaffff; opacity: 0.85; }
+    </style>
+    <marker id="arrowhead-cyan" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#00ffaa" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#00ff00" />
+    </marker>
+    <marker id="arrowhead-yellow" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#ffcc00" />
+    </marker>
+    <marker id="arrowhead-purple" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#ff00ff" />
+    </marker>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#0a2540" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="1700" height="1430" fill="#0a1628"/>
+  <rect width="1700" height="1430" fill="url(#grid)"/>
+  <text x="850" y="45" class="title" text-anchor="middle" filter="url(#glow)">GraphRAG Data Flow Architecture</text>
+
+  <!-- OFFLINE PHASE -->
+  <rect x="30" y="70" width="1640" height="420" fill="none" stroke="#0099ff" stroke-width="2.5" stroke-dasharray="8,4" rx="12" opacity="0.6"/>
+  <text x="55" y="108" class="phase-title">[OFFLINE PHASE]</text>
+  <text x="55" y="132" class="phase-label">Entity Extraction &amp; Knowledge Graph Construction (One-Time — Most Expensive Indexing In The Repo)</text>
+  <rect x="55" y="148" width="1590" height="70" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="6"/>
+  <text x="70" y="168" class="summary" font-weight="600">📌 SUMMARY: Every chunk costs one LLM extraction call. Typed entities become graph nodes,</text>
+  <text x="70" y="184" class="summary">relationships become weighted edges — both remember their source chunk ids. Louvain communities</text>
+  <text x="70" y="200" class="summary">are tagged on. A vector index is built alongside purely for query-time backfill.</text>
+
+  <!-- Row 1: chunking -->
+  <g filter="url(#glow)">
+    <rect x="55" y="245" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="60" y="250" width="180" height="90" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="150" y="279" class="label" text-anchor="middle" font-size="18">📄 Documents</text>
+    <text x="150" y="303" class="data-label" text-anchor="middle">Raw Text</text>
+  </g>
+  <line x1="245" y1="295" x2="315" y2="295" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="252" y="281" width="56" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="280" y="300" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Split</text>
+  <g filter="url(#glow)">
+    <rect x="315" y="245" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="320" y="250" width="180" height="90" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="410" y="279" class="label" text-anchor="middle" font-size="18">✂️ Chunks</text>
+    <text x="410" y="303" class="data-label" text-anchor="middle">512 tok, overlap=50</text>
+  </g>
+  <line x1="505" y1="295" x2="575" y2="295" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="516" y="281" width="48" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="540" y="300" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Extract</text>
+
+  <!-- Extraction node + output branches -->
+  <g filter="url(#glow)">
+    <rect x="575" y="245" width="230" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="580" y="250" width="220" height="90" fill="none" stroke="#aa00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="690" y="269" class="label" text-anchor="middle" font-size="16">🧠 LLM Extraction</text>
+    <text x="690" y="293" class="data-label" text-anchor="middle">1 call per chunk:</text>
+    <text x="690" y="311" class="data-label" text-anchor="middle">entities + relations</text>
+    <text x="690" y="329" class="data-label" text-anchor="middle">(typed, constrained)</text>
+  </g>
+  <text x="850" y="267" class="note">💡 ENTITIES: name | type</text>
+  <text x="850" y="291" class="note">💡 RELATIONSHIPS: src | rel | tgt</text>
+  <text x="850" y="315" class="note">💡 Priced in LLM calls: chunks × 1 — budget accordingly</text>
+
+  <!-- Row 2: graph build -->
+  <path d="M 690 345 Q 690 385 400 400" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <g filter="url(#glow)">
+    <rect x="185" y="400" width="430" height="80" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="190" y="405" width="420" height="70" fill="none" stroke="#00ff00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="400" y="424" class="label" text-anchor="middle" font-size="16">🕸️ Knowledge Graph (NetworkX)</text>
+    <text x="400" y="446" class="data-label" text-anchor="middle">nodes = typed entities · edges = weighted relations</text>
+    <text x="400" y="464" class="data-label" text-anchor="middle">every node/edge stores its source chunk_ids</text>
+  </g>
+  <path d="M 615 440 Q 700 440 745 440" stroke="#00ffaa" stroke-width="3" fill="none" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="745" y="400" width="260" height="80" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="750" y="405" width="250" height="70" fill="none" stroke="#ffcc00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="875" y="424" class="label" text-anchor="middle" font-size="15">👥 Louvain Communities</text>
+    <text x="875" y="446" class="data-label" text-anchor="middle">structure stats + node tags</text>
+    <text x="875" y="464" class="data-label" text-anchor="middle">(global summaries: not yet used)</text>
+  </g>
+  <path d="M 1005 440 Q 1060 440 1095 440" stroke="#00ffaa" stroke-width="3" fill="none" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="1095" y="400" width="240" height="80" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="1100" y="405" width="230" height="70" fill="none" stroke="#00d9ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="1215" y="424" class="label" text-anchor="middle" font-size="15">💾 Vector Index</text>
+    <text x="1215" y="446" class="data-label" text-anchor="middle">same chunks, built for</text>
+    <text x="1215" y="464" class="data-label" text-anchor="middle">backfill duty only</text>
+  </g>
+
+  <!-- ONLINE PHASE -->
+  <text x="55" y="530" class="phase-title">[ONLINE PHASE]</text>
+  <text x="55" y="554" class="phase-label">Match Entities → Traverse Graph → Assemble Context → Backfill → Generate (Per Query)</text>
+  <rect x="55" y="568" width="1590" height="70" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="6"/>
+  <text x="70" y="590" class="summary" font-weight="600">📌 SUMMARY: One entity-extraction call per query, then the answer path is a graph walk.</text>
+  <text x="70" y="606" class="summary">Chunks are chosen because matched entities REFERENCE them — not because embeddings look similar.</text>
+  <text x="70" y="622" class="summary">Short or unmatched queries degrade honestly to dense retrieval and say so in metadata.</text>
+  <rect x="30" y="480" width="1640" height="910" fill="none" stroke="#0099ff" stroke-width="2.5" stroke-dasharray="8,4" rx="12" opacity="0.6"/>
+
+  <!-- Stage 1: Match -->
+  <rect x="50" y="650" width="1600" height="180" fill="none" stroke="#4ac0ff" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="674" class="stage-title" fill="#4ac0ff">① MATCH — Question Entities vs. Graph Nodes</text>
+  <g filter="url(#glow)">
+    <rect x="70" y="695" width="190" height="110" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="75" y="700" width="180" height="100" fill="none" stroke="#ff00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="165" y="723" class="label" text-anchor="middle" font-size="16">❓ Query</text>
+    <text x="165" y="747" class="data-label" text-anchor="middle">User Input</text>
+  </g>
+  <line x1="260" y1="750" x2="340" y2="750" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="251" y="736" width="98" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="300" y="755" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Entities?</text>
+  <g filter="url(#glow)">
+    <rect x="340" y="695" width="220" height="110" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="345" y="700" width="210" height="100" fill="none" stroke="#aa00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="450" y="718" class="label" text-anchor="middle" font-size="16">🧠 Entity Extraction</text>
+    <text x="450" y="742" class="data-label" text-anchor="middle">one LLM call lists</text>
+    <text x="450" y="760" class="data-label" text-anchor="middle">concrete entities</text>
+    <text x="450" y="778" class="data-label" text-anchor="middle">in the question</text>
+  </g>
+  <line x1="560" y1="750" x2="640" y2="750" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="564" y="736" width="72" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="600" y="755" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Match</text>
+  <g filter="url(#glow)">
+    <rect x="640" y="695" width="230" height="110" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="645" y="700" width="220" height="100" fill="none" stroke="#ffcc00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="755" y="718" class="label" text-anchor="middle" font-size="16">🎯 Node Matching</text>
+    <text x="755" y="742" class="data-label" text-anchor="middle">exact case-insensitive,</text>
+    <text x="755" y="760" class="data-label" text-anchor="middle">then substring fallback</text>
+    <text x="755" y="778" class="data-label" text-anchor="middle">(lexical, not fuzzy)</text>
+  </g>
+  <text x="910" y="720" class="note" fill="#00ff00">💡 Matched → traverse the graph (stage ②)</text>
+  <text x="910" y="744" class="note" fill="#ff4444">💡 No matches → dense-only fallback (stage ②b)</text>
+  <text x="910" y="768" class="note">💡 Which path fired is reported as context_source metadata</text>
+
+  <!-- Stage 2: Traverse -->
+  <rect x="50" y="855" width="1600" height="200" fill="none" stroke="#ffcc55" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="879" class="stage-title" fill="#ffcc55">② TRAVERSE &amp; ASSEMBLE — Context From Connections</text>
+  <g filter="url(#glow)">
+    <rect x="70" y="900" width="230" height="130" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="75" y="905" width="220" height="120" fill="none" stroke="#00ff00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="185" y="928" class="label" text-anchor="middle" font-size="15">🕸️ Ego-Subgraph Expansion</text>
+    <text x="185" y="952" class="data-label" text-anchor="middle">radius = max_hops (default 2)</text>
+    <text x="185" y="970" class="data-label" text-anchor="middle">around every matched node,</text>
+    <text x="185" y="988" class="data-label" text-anchor="middle">union of neighborhoods</text>
+  </g>
+  <line x1="300" y1="965" x2="380" y2="965" stroke="#00ffaa" stroke-width="3" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="380" y="900" width="250" height="130" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="385" y="905" width="240" height="120" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="505" y="928" class="label" text-anchor="middle" font-size="15">📋 Collect Chunk Refs</text>
+    <text x="505" y="952" class="data-label" text-anchor="middle">from touched nodes AND edges,</text>
+    <text x="505" y="970" class="data-label" text-anchor="middle">count references per chunk,</text>
+    <text x="505" y="988" class="data-label" text-anchor="middle">most-referenced wins</text>
+  </g>
+  <line x1="630" y1="965" x2="710" y2="965" stroke="#00ffaa" stroke-width="3" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="710" y="900" width="240" height="130" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="715" y="905" width="230" height="120" fill="none" stroke="#ffcc00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="830" y="928" class="label" text-anchor="middle" font-size="15">📦 Assemble Context</text>
+    <text x="830" y="952" class="data-label" text-anchor="middle">cap at max_context_chunks;</text>
+    <text x="830" y="970" class="data-label" text-anchor="middle">if fewer than top_k,</text>
+    <text x="830" y="988" class="data-label" text-anchor="middle">dense backfill tops up</text>
+  </g>
+  <text x="990" y="920" class="note">💡 Hub entities can reference dozens of chunks — the cap keeps prompts bounded</text>
+  <text x="990" y="944" class="note">💡 Backfill reuses the offline vector index; duplicates removed by content prefix</text>
+  <text x="990" y="968" class="note">💡 Result reports graph_chunks and dense_backfilled counts separately</text>
+
+  <!-- Stage 2b: fallback lane -->
+  <rect x="1150" y="880" width="480" height="160" fill="none" stroke="#ff4444" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="1170" y="904" class="stage-title" fill="#ff4444">②b FALLBACK — No Graph Matches</text>
+  <g filter="url(#glow)">
+    <rect x="1170" y="920" width="200" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="1175" y="925" width="190" height="90" fill="none" stroke="#ff4444" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="1270" y="949" class="label" text-anchor="middle" font-size="14">🔍 Dense Retrieval Only</text>
+    <text x="1270" y="973" class="data-label" text-anchor="middle">context_source =</text>
+    <text x="1270" y="991" class="data-label" text-anchor="middle">'dense_only'</text>
+  </g>
+  <text x="1390" y="945" class="note">💡 Honest degradation — never</text>
+  <text x="1390" y="969" class="note">💡 pretends the graph contributed</text>
+
+  <!-- Stage 3: Generate -->
+  <rect x="50" y="1080" width="1600" height="165" fill="none" stroke="#ff66ff" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="1104" class="stage-title" fill="#ff66ff">③ GENERATE — Synthesize Across Entity Facts</text>
+  <g filter="url(#glow)">
+    <rect x="70" y="1120" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="75" y="1125" width="180" height="90" fill="none" stroke="#ff00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="165" y="1144" class="label" text-anchor="middle" font-size="16">📥 Assemble</text>
+    <text x="165" y="1168" class="data-label" text-anchor="middle">graph context (+ backfill)</text>
+    <text x="165" y="1186" class="data-label" text-anchor="middle">or dense-only context</text>
+  </g>
+  <line x1="260" y1="1170" x2="340" y2="1170" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="256" y="1156" width="88" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="300" y="1175" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Generate</text>
+  <g filter="url(#glow)">
+    <rect x="340" y="1120" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="345" y="1125" width="180" height="90" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="435" y="1144" class="label" text-anchor="middle" font-size="16">📝 Generate</text>
+    <text x="435" y="1168" class="data-label" text-anchor="middle">synthesize across</text>
+    <text x="435" y="1186" class="data-label" text-anchor="middle">all related entities</text>
+  </g>
+  <line x1="530" y1="1170" x2="610" y2="1170" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <rect x="532" y="1156" width="76" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="570" y="1175" class="data-label" text-anchor="middle" font-size="12" font-weight="600">Attach</text>
+  <g filter="url(#glow)">
+    <rect x="610" y="1120" width="190" height="100" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="615" y="1125" width="180" height="90" fill="none" stroke="#00ff00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="705" y="1144" class="label" text-anchor="middle" font-size="16">✅ Answer</text>
+    <text x="705" y="1168" class="data-label" text-anchor="middle">+ matched_entities,</text>
+    <text x="705" y="1186" class="data-label" text-anchor="middle">context_source metadata</text>
+  </g>
+  <text x="860" y="1148" class="note">💡 Multi-hop questions get real relation paths, not embedding luck</text>
+  <text x="860" y="1172" class="note">💡 Every result is auditable: which entities matched, where context came from</text>
+
+  <!-- Stage transitions -->
+  <path d="M 755 805 Q 400 850 185 900" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="392" y="832" width="104" height="24" fill="#0a1628" opacity="0.95"/>
+  <text x="444" y="850" class="data-label" text-anchor="middle" font-size="12" font-weight="600" fill="#ff00ff">matched →</text>
+
+  <path d="M 755 805 Q 1050 840 1270 920" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="1010" y="822" width="124" height="24" fill="#0a1628" opacity="0.95"/>
+  <text x="1072" y="840" class="data-label" text-anchor="middle" font-size="12" font-weight="600" fill="#ff00ff">no match →</text>
+
+  <path d="M 830 1030 Q 500 1075 265 1135" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="470" y="1078" width="104" height="24" fill="#0a1628" opacity="0.95"/>
+  <text x="522" y="1096" class="data-label" text-anchor="middle" font-size="12" font-weight="600" fill="#ff00ff">context →</text>
+
+  <path d="M 1370 1040 Q 1000 1090 800 1145" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="1010" y="1082" width="104" height="24" fill="#0a1628" opacity="0.95"/>
+  <text x="1062" y="1100" class="data-label" text-anchor="middle" font-size="12" font-weight="600" fill="#ff00ff">context →</text>
+
+  <!-- LEGEND -->
+  <text x="55" y="1360" class="phase-title">[LEGEND]</text>
+  <line x1="250" y1="1352" x2="295" y2="1352" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <text x="310" y="1357" class="data-label" font-size="12" font-weight="600">Primary Data Flow</text>
+  <line x1="530" y1="1352" x2="575" y2="1352" stroke="#ff00ff" stroke-width="3" stroke-dasharray="7,5" marker-end="url(#arrowhead-purple)"/>
+  <text x="590" y="1357" class="data-label" font-size="12" font-weight="600">Stage Transition / Branch</text>
+  <rect x="830" y="1344" width="16" height="16" fill="none" stroke="#00ff00" stroke-width="2.5"/>
+  <text x="854" y="1357" class="data-label" font-size="12" font-weight="600">Graph Path (matched entities)</text>
+  <rect x="1110" y="1344" width="16" height="16" fill="none" stroke="#ff4444" stroke-width="2.5"/>
+  <text x="1134" y="1357" class="data-label" font-size="12" font-weight="600">Fallback Path (no matches)</text>
+</svg>

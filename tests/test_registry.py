@@ -26,11 +26,11 @@ def test_all_fourteen_techniques_present():
 
 
 def test_implemented_vs_stub_counts():
-    """10 techniques implemented, 04 stubs."""
+    """11 techniques implemented, 03 stubs."""
     implemented = get_techniques(status="implemented")
     stubs = get_techniques(status="stub")
-    assert len(implemented) == 10
-    assert len(stubs) == 4
+    assert len(implemented) == 11
+    assert len(stubs) == 3
 
 
 def test_implemented_techniques_have_both_frameworks():
@@ -56,20 +56,20 @@ def test_load_class_returns_base_rag_subclass():
 def test_load_class_unknown_combo_raises_keyerror():
     """An unimplemented combo raises KeyError."""
     with pytest.raises(KeyError):
-        load_class("graph_rag", "langchain")
+        load_class("raptor_rag", "langchain")
 
 
 def test_is_registered_stub_technique():
     """Stub techniques are registered for zero frameworks."""
-    assert not is_registered("graph_rag", "langchain")
-    assert not is_implemented("graph_rag")
+    assert not is_registered("raptor_rag", "langchain")
+    assert not is_implemented("raptor_rag")
 
 
-def test_adaptive_rag_is_registered_and_routable():
-    """Adaptive RAG is fully implemented for both frameworks."""
-    assert is_implemented("adaptive_rag")
-    assert is_registered("adaptive_rag", "langchain")
-    assert is_registered("adaptive_rag", "llamaindex")
+def test_graph_rag_is_registered_and_routable():
+    """GraphRAG is fully implemented for both frameworks."""
+    assert is_implemented("graph_rag")
+    assert is_registered("graph_rag", "langchain")
+    assert is_registered("graph_rag", "llamaindex")
 
 
 def test_class_files_exist_on_disk():

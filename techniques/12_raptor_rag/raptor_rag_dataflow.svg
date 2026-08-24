@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1700 1430">
+  <defs>
+    <style>
+      * { font-family: "Courier New", monospace; }
+      .title { font-size: 36px; font-weight: 700; fill: #00d9ff; }
+      .phase-title { font-size: 22px; font-weight: 700; fill: #00ffaa; }
+      .stage-title { font-size: 17px; font-weight: 700; }
+      .label { font-size: 15px; fill: #00ffaa; font-weight: 600; }
+      .small-label { font-size: 13px; fill: #00ffaa; font-weight: 600; }
+      .data-label { font-size: 12px; fill: #00d9ff; font-weight: 500; }
+      .phase-label { font-size: 14px; fill: #0099ff; font-style: italic; }
+      .description { font-size: 13px; fill: #00d9ff; opacity: 0.95; }
+      .summary { font-size: 12px; fill: #aaffff; opacity: 0.9; }
+      .note { font-size: 12px; fill: #aaffff; opacity: 0.85; }
+    </style>
+    <marker id="arrowhead-cyan" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#00ffaa" />
+    </marker>
+    <marker id="arrowhead-green" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#00ff00" />
+    </marker>
+    <marker id="arrowhead-yellow" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#ffcc00" />
+    </marker>
+    <marker id="arrowhead-purple" markerWidth="12" markerHeight="9" refX="11" refY="4.5" orient="auto">
+      <polygon points="0 0, 12 4.5, 0 9" fill="#ff00ff" />
+    </marker>
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="grid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <path d="M 20 0 L 0 0 0 20" fill="none" stroke="#0a2540" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="1700" height="1430" fill="#0a1628"/>
+  <rect width="1700" height="1430" fill="url(#grid)"/>
+  <text x="850" y="45" class="title" text-anchor="middle" filter="url(#glow)">RAPTOR Data Flow Architecture</text>
+
+  <!-- OFFLINE PHASE -->
+  <rect x="30" y="70" width="1640" height="790" fill="none" stroke="#0099ff" stroke-width="2.5" stroke-dasharray="8,4" rx="12" opacity="0.6"/>
+  <text x="55" y="108" class="phase-title">[OFFLINE PHASE]</text>
+  <text x="55" y="132" class="phase-label">Recursive Abstractive Tree Building (One-Time — One LLM Call Per Qualifying Cluster, Per Level)</text>
+  <rect x="55" y="146" width="1590" height="72" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="6"/>
+  <text x="70" y="166" class="summary" font-weight="600">📌 SUMMARY: Indexing recurses — embed a level, cluster its texts, summarize each qualifying cluster into a parent node, repeat.</text>
+  <text x="70" y="184" class="summary">Recursion stops at max_depth, when clusters stop forming, or when summaries stop shrinking the frontier.</text>
+  <text x="70" y="202" class="summary">Then the whole tree collapses: every node from EVERY level lives in ONE vector index. Query time stays plain dense search —</text>
+  <text x="70" y="216" class="summary">abstraction breadth is baked into what the index contains, not into query-time machinery.</text>
+
+  <!-- Stage 1: ingestion -->
+  <rect x="50" y="238" width="1600" height="168" fill="none" stroke="#4ac0ff" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="262" class="stage-title" fill="#4ac0ff">① INGESTION — Chunks Become Tree Leaves</text>
+  <g filter="url(#glow)">
+    <rect x="70" y="284" width="180" height="104" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="75" y="289" width="170" height="94" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="160" y="322" class="label" text-anchor="middle" font-size="17">📄 Documents</text>
+    <text x="160" y="348" class="data-label" text-anchor="middle">raw corpus</text>
+  </g>
+  <line x1="250" y1="336" x2="320" y2="336" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="320" y="284" width="200" height="104" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="325" y="289" width="190" height="94" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="420" y="318" class="label" text-anchor="middle" font-size="16">✂️ Recursive Splitter</text>
+    <text x="420" y="340" class="data-label" text-anchor="middle">chunk_size=1000</text>
+    <text x="420" y="358" class="data-label" text-anchor="middle">overlap=200</text>
+  </g>
+  <line x1="520" y1="336" x2="590" y2="336" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="590" y="284" width="260" height="104" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="595" y="289" width="250" height="94" fill="none" stroke="#00d9ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="720" y="314" class="label" text-anchor="middle" font-size="16">🍃 Leaf Nodes (Level 0)</text>
+    <text x="720" y="338" class="data-label" text-anchor="middle">original chunks, full fidelity</text>
+    <text x="720" y="356" class="data-label" text-anchor="middle">metadata: {node_id, level}</text>
+    <text x="720" y="374" class="data-label" text-anchor="middle">ids look like L0-0, L0-1, ...</text>
+  </g>
+  <text x="890" y="308" class="note">💡 Leaves keep ground truth —</text>
+  <text x="890" y="328" class="note">every summary above is lossy,</text>
+  <text x="890" y="348" class="note">so generation prefers leaves</text>
+  <text x="890" y="368" class="note">when they disagree.</text>
+
+  <!-- Stage 2: recursive build -->
+  <rect x="50" y="424" width="1600" height="292" fill="none" stroke="#4ac0ff" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="448" class="stage-title" fill="#4ac0ff">② RECURSIVE BUILD LOOP — Per Level: Embed → Cluster → Summarize</text>
+  <path d="M 720 388 C 720 432, 170 420, 170 474" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+
+  <g filter="url(#glow)">
+    <rect x="70" y="478" width="200" height="118" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="75" y="483" width="190" height="108" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="170" y="512" class="label" text-anchor="middle" font-size="16">🔢 Embed Level</text>
+    <text x="170" y="536" class="data-label" text-anchor="middle">embed every text</text>
+    <text x="170" y="554" class="data-label" text-anchor="middle">on the current</text>
+    <text x="170" y="572" class="data-label" text-anchor="middle">frontier level</text>
+  </g>
+  <line x1="270" y1="537" x2="330" y2="537" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="330" y="478" width="260" height="118" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="335" y="483" width="250" height="108" fill="none" stroke="#aa00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="460" y="508" class="label" text-anchor="middle" font-size="16">🎯 Cluster Texts</text>
+    <text x="460" y="532" class="data-label" text-anchor="middle">GMM, k=1..max_clusters</text>
+    <text x="460" y="550" class="data-label" text-anchor="middle">lowest BIC wins</text>
+    <text x="460" y="568" class="data-label" text-anchor="middle">alt: agglomerative (det.)</text>
+    <text x="460" y="586" class="data-label" text-anchor="middle">⚠️ UMAP key unwired</text>
+  </g>
+  <line x1="590" y1="537" x2="650" y2="537" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="650" y="478" width="270" height="118" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="655" y="483" width="260" height="108" fill="none" stroke="#ffcc00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="785" y="508" class="label" text-anchor="middle" font-size="16">📝 Summarize Clusters</text>
+    <text x="785" y="532" class="data-label" text-anchor="middle">1 LLM call per cluster</text>
+    <text x="785" y="550" class="data-label" text-anchor="middle">clusters smaller than</text>
+    <text x="785" y="568" class="data-label" text-anchor="middle">cluster_size_min pass through</text>
+  </g>
+  <line x1="920" y1="537" x2="985" y2="537" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="985" y="478" width="215" height="118" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="990" y="483" width="205" height="108" fill="none" stroke="#00ff00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="1092" y="508" class="label" text-anchor="middle" font-size="16">👪 Parent Nodes</text>
+    <text x="1092" y="532" class="data-label" text-anchor="middle">cluster summaries</text>
+    <text x="1092" y="550" class="data-label" text-anchor="middle">become level L+1,</text>
+    <text x="1092" y="568" class="data-label" text-anchor="middle">each remembering</text>
+    <text x="1092" y="586" class="data-label" text-anchor="middle">its children</text>
+  </g>
+  <g filter="url(#glow)">
+    <rect x="1260" y="478" width="360" height="118" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="1265" y="483" width="350" height="108" fill="none" stroke="#ff6666" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="1440" y="508" class="label" text-anchor="middle" font-size="16">⏹ STOP RECURSION WHEN</text>
+    <text x="1440" y="532" class="data-label" text-anchor="middle">· next level exceeds max_depth</text>
+    <text x="1440" y="550" class="data-label" text-anchor="middle">· zero valid clusters were built</text>
+    <text x="1440" y="568" class="data-label" text-anchor="middle">· frontier stopped shrinking</text>
+    <text x="1440" y="586" class="data-label" text-anchor="middle">(guards against endless loops)</text>
+  </g>
+  <path d="M 1092 596 C 1092 662, 170 662, 170 598" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="520" y="646" width="190" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="615" y="664" class="data-label" text-anchor="middle" font-size="13" font-weight="600">🔁 parents feed next level</text>
+
+  <!-- Stage 3: collapse -->
+  <rect x="50" y="734" width="1600" height="112" fill="none" stroke="#4ac0ff" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="758" class="stage-title" fill="#4ac0ff">③ COLLAPSE — One Index For The Whole Tree</text>
+  <line x1="1092" y1="716" x2="1092" y2="770" stroke="#ff00ff" stroke-width="3" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <g filter="url(#glow)">
+    <rect x="250" y="772" width="1200" height="64" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="255" y="777" width="1190" height="54" fill="none" stroke="#ffcc00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="850" y="798" class="label" text-anchor="middle" font-size="16">💾 Collapsed Vector Index — Every Level Competes In One Space</text>
+    <text x="850" y="820" class="data-label" text-anchor="middle">L0 raw facts · L1 cluster syntheses · L2 themes-of-themes · ... (height reported in metadata)</text>
+  </g>
+
+  <!-- ONLINE PHASE -->
+  <rect x="30" y="880" width="1640" height="400" fill="none" stroke="#0099ff" stroke-width="2.5" stroke-dasharray="8,4" rx="12" opacity="0.6"/>
+  <text x="55" y="918" class="phase-title">[ONLINE PHASE]</text>
+  <text x="55" y="942" class="phase-label">Plain Dense Search Across Every Abstraction Level (Per Query — Same Cost As Naive RAG)</text>
+  <rect x="55" y="956" width="1590" height="56" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="6"/>
+  <text x="70" y="976" class="summary" font-weight="600">📌 SUMMARY: Nothing exotic happens online — the trick is WHAT the index holds. Theme questions match summary nodes,</text>
+  <text x="70" y="994" class="summary">fact questions match leaves. Similarity alone decides which abstraction level answers.</text>
+
+  <!-- Stage 4: query -->
+  <rect x="50" y="1028" width="1600" height="190" fill="none" stroke="#4ac0ff" stroke-width="2" stroke-dasharray="6,3" rx="10" opacity="0.7"/>
+  <text x="70" y="1052" class="stage-title" fill="#4ac0ff">④ QUERY — Dense Retrieval Over All Levels At Once</text>
+  <path d="M 850 836 C 850 884, 850 940, 850 1024" stroke="#ff00ff" stroke-width="3" fill="none" marker-end="url(#arrowhead-purple)" stroke-dasharray="7,5"/>
+  <rect x="760" y="1000" width="180" height="26" fill="#0a1628" opacity="0.95"/>
+  <text x="850" y="1018" class="data-label" text-anchor="middle" font-size="13" font-weight="600">collapsed index ready</text>
+
+  <g filter="url(#glow)">
+    <rect x="70" y="1076" width="170" height="110" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="75" y="1081" width="160" height="100" fill="none" stroke="#ff00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="155" y="1118" class="label" text-anchor="middle" font-size="16">❓ Question</text>
+    <text x="155" y="1142" class="data-label" text-anchor="middle">user input</text>
+  </g>
+  <line x1="240" y1="1131" x2="290" y2="1131" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="290" y="1076" width="180" height="110" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="295" y="1081" width="170" height="100" fill="none" stroke="#ffaa00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="380" y="1118" class="label" text-anchor="middle" font-size="16">🧮 Embed Query</text>
+    <text x="380" y="1142" class="data-label" text-anchor="middle">same embedder</text>
+    <text x="380" y="1160" class="data-label" text-anchor="middle">as indexing</text>
+  </g>
+  <line x1="470" y1="1131" x2="530" y2="1131" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="530" y="1076" width="330" height="110" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="535" y="1081" width="320" height="100" fill="none" stroke="#00ff00" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="695" y="1106" class="label" text-anchor="middle" font-size="16">🔍 Dense Retrieval — top_k</text>
+    <text x="695" y="1130" class="data-label" text-anchor="middle">one similarity search over ALL levels:</text>
+    <text x="695" y="1148" class="data-label" text-anchor="middle">leaves and summaries compete equally</text>
+    <text x="695" y="1166" class="data-label" text-anchor="middle">no routing decision required</text>
+  </g>
+  <line x1="860" y1="1131" x2="920" y2="1131" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="920" y="1076" width="300" height="110" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="925" y="1081" width="290" height="100" fill="none" stroke="#aa00ff" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="1070" y="1106" class="label" text-anchor="middle" font-size="16">🧠 Generate</text>
+    <text x="1070" y="1130" class="data-label" text-anchor="middle">prompt instructs: prefer original</text>
+    <text x="1070" y="1148" class="data-label" text-anchor="middle">chunks over derived summaries</text>
+    <text x="1070" y="1166" class="data-label" text-anchor="middle">when they conflict</text>
+  </g>
+  <line x1="1220" y1="1131" x2="1270" y2="1131" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <g filter="url(#glow)">
+    <rect x="1270" y="1076" width="180" height="110" fill="none" stroke="#00d9ff" stroke-width="3" rx="10"/>
+    <rect x="1275" y="1081" width="170" height="100" fill="none" stroke="#00ffaa" stroke-width="1.5" opacity="0.4" rx="8"/>
+    <text x="1360" y="1118" class="label" text-anchor="middle" font-size="16">✅ Answer</text>
+    <text x="1360" y="1142" class="data-label" text-anchor="middle">grounded in facts</text>
+    <text x="1360" y="1160" class="data-label" text-anchor="middle">and/or syntheses</text>
+  </g>
+  <text x="70" y="1206" class="description">result metadata: levels_retrieved=[0, 2] · tree_height=3 · total_tree_nodes=217 — see at a glance which abstractions answered</text>
+
+  <!-- LEGEND -->
+  <text x="55" y="1322" class="phase-title">[LEGEND]</text>
+  <line x1="55" y1="1348" x2="135" y2="1348" stroke="#00ffaa" stroke-width="3.5" marker-end="url(#arrowhead-cyan)"/>
+  <text x="150" y="1353" class="small-label">data flow</text>
+  <line x1="290" y1="1348" x2="370" y2="1348" stroke="#ff00ff" stroke-width="3" stroke-dasharray="7,5" marker-end="url(#arrowhead-purple)"/>
+  <text x="385" y="1353" class="small-label">recursion / stage transition</text>
+  <rect x="650" y="1334" width="28" height="28" fill="none" stroke="#00d9ff" stroke-width="2.5" rx="6"/>
+  <rect x="654" y="1338" width="20" height="20" fill="none" stroke="#ffcc00" stroke-width="1.2" opacity="0.5" rx="4"/>
+  <text x="692" y="1353" class="small-label">processing node (outer glow + inner tint)</text>
+  <text x="1050" y="1353" class="small-label">💡 implementation note</text>
+  <text x="55" y="1395" class="note">RAPTOR (Sarthi et al., 2024): recursive clustering + summarization builds an abstraction tree; collapsing it lets one dense search</text>
+  <text x="55" y="1413" class="note">serve both "what was the exact error rate?" (leaf) and "what are the main themes?" (summary) without any query-time routing.</text>
+</svg>

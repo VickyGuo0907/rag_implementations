@@ -1,3 +1,4 @@
-from .langchain_impl import RAPTORRAGLangChain
+from .langchain_impl import RaptorRAGLangChain
+from .llamaindex_impl import RaptorRAGLlamaIndex
 
-__all__ = ["RAPTORRAGLangChain"]
+__all__ = ["RaptorRAGLangChain", "RaptorRAGLlamaIndex"]

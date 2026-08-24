@@ -135,8 +135,8 @@ TECHNIQUES: dict[str, dict] = {
         "complexity": 5,
         "latency": "High",
         "accuracy": "Very High",
-        "status": "stub",
-        "description": "Cluster docs → summarize clusters → build a recursive tree → query at depth",  # noqa: E501
+        "status": "implemented",
+        "description": "Cluster chunks, summarize recursively into a tree, retrieve across all levels",  # noqa: E501
     },
     "agentic_rag": {
         "name": "Agentic RAG",
@@ -185,6 +185,8 @@ IMPLEMENTATIONS: dict[tuple[str, str], str] = {
     ("adaptive_rag", "llamaindex"): "techniques.10_adaptive_rag.llamaindex_impl.AdaptiveRAGLlamaIndex",  # noqa: E501
     ("graph_rag", "langchain"): "techniques.11_graph_rag.langchain_impl.GraphRAGLangChain",
     ("graph_rag", "llamaindex"): "techniques.11_graph_rag.llamaindex_impl.GraphRAGLlamaIndex",
+    ("raptor_rag", "langchain"): "techniques.12_raptor_rag.langchain_impl.RaptorRAGLangChain",
+    ("raptor_rag", "llamaindex"): "techniques.12_raptor_rag.llamaindex_impl.RaptorRAGLlamaIndex",
 }
 
 

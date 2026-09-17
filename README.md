@@ -508,6 +508,8 @@ Key sections:
 - [Awesome RAG — Curated Collection](https://github.com/Danielskry/Awesome-RAG) — Comprehensive resources, papers, and implementations
 - [RAG Paper — Lewis et al. 2020](https://arxiv.org/abs/2005.11401)
 - [NirDiamant/RAG_Techniques](https://github.com/NirDiamant/RAG_Techniques) — 42 technique notebooks
+- [LangChain — RAG From Scratch](https://github.com/langchain-ai/rag-from-scratch) — notebooks walking through RAG concepts from first principles
+- [RAG From Scratch — YouTube Playlist](https://www.youtube.com/playlist?list=PLfaIDFEXuae2LXbO1_PKyVJiQ23ZztA0x) — companion video series
 - [RAGAS Documentation](https://docs.ragas.io)
 - [LMStudio](https://lmstudio.ai)
 - [LangChain Docs](https://python.langchain.com)

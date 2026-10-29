@@ -26,11 +26,11 @@ def test_all_fourteen_techniques_present():
 
 
 def test_implemented_vs_stub_counts():
-    """12 techniques implemented, 02 stubs."""
+    """13 techniques implemented, 1 stub."""
     implemented = get_techniques(status="implemented")
     stubs = get_techniques(status="stub")
-    assert len(implemented) == 12
-    assert len(stubs) == 2
+    assert len(implemented) == 13
+    assert len(stubs) == 1
 
 
 def test_implemented_techniques_have_both_frameworks():
@@ -56,13 +56,13 @@ def test_load_class_returns_base_rag_subclass():
 def test_load_class_unknown_combo_raises_keyerror():
     """An unimplemented combo raises KeyError."""
     with pytest.raises(KeyError):
-        load_class("agentic_rag", "langchain")
+        load_class("multimodal_rag", "langchain")
 
 
 def test_is_registered_stub_technique():
     """Stub techniques are registered for zero frameworks."""
-    assert not is_registered("agentic_rag", "langchain")
-    assert not is_implemented("agentic_rag")
+    assert not is_registered("multimodal_rag", "langchain")
+    assert not is_implemented("multimodal_rag")
 
 
 def test_raptor_rag_is_registered_and_routable():

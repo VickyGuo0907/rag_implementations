@@ -39,7 +39,7 @@ RAG_technique_summary/
 │   ├── 10_adaptive_rag/               ✅ Full implementation
 │   ├── 11_graph_rag/                  ✅ Full implementation
 │   ├── 12_raptor_rag/                  ✅ Full implementation
-│   ├── 13_agentic_rag/                🔧 Stub
+│   ├── 13_agentic_rag/                ✅ Full implementation
 │   └── 14_multimodal_rag/             🔧 Stub
 │
 ├── evaluation/
@@ -330,7 +330,7 @@ Needs fundamentally different data structures or machinery — knowledge graphs,
 |---|-----------|:----------:|:-------:|:--------:|:------:|
 | 11 | GraphRAG | ⭐⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | ✅ Done |
 | 12 | RAPTOR | ⭐⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | ✅ Done |
-| 13 | Agentic RAG | ⭐⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | 🔧 Stub |
+| 13 | Agentic RAG | ⭐⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | ✅ Done |
 | 14 | Multi-modal RAG | ⭐⭐⭐⭐ | 🔴 High | 🟢 High | 🔧 Stub |
 
 ---

@@ -144,8 +144,8 @@ TECHNIQUES: dict[str, dict] = {
         "complexity": 5,
         "latency": "High",
         "accuracy": "Very High",
-        "status": "stub",
-        "description": "LLM agent decides when/what to retrieve and uses multiple tools",
+        "status": "implemented",
+        "description": "ReAct agent decides when/what to retrieve, iterates, and uses a calculator",  # noqa: E501
     },
     "multimodal_rag": {
         "name": "Multi-modal RAG",
@@ -187,6 +187,8 @@ IMPLEMENTATIONS: dict[tuple[str, str], str] = {
     ("graph_rag", "llamaindex"): "techniques.11_graph_rag.llamaindex_impl.GraphRAGLlamaIndex",
     ("raptor_rag", "langchain"): "techniques.12_raptor_rag.langchain_impl.RaptorRAGLangChain",
     ("raptor_rag", "llamaindex"): "techniques.12_raptor_rag.llamaindex_impl.RaptorRAGLlamaIndex",
+    ("agentic_rag", "langchain"): "techniques.13_agentic_rag.langchain_impl.AgenticRAGLangChain",
+    ("agentic_rag", "llamaindex"): "techniques.13_agentic_rag.llamaindex_impl.AgenticRAGLlamaIndex",
 }
 
 

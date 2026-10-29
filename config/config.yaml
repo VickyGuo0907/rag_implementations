@@ -341,12 +341,10 @@ rag_techniques:
     enabled: true
     description: "LLM agent decides when/what to retrieve, uses multiple tools"
     max_iterations: 5
-    agent_type: "react"             # Options: react, openai_functions, plan_and_execute
+    agent_type: "react"             # Text-based ReAct loop (works with any local model)
     tools:
       - vector_retrieval            # Always included
-      - web_search                  # Requires API key
-      - calculator                  # Math operations
-      - code_executor               # Run Python code
+      - calculator                  # Safe arithmetic (AST-whitelisted, no eval)
     use_cases:
       - "Complex multi-step reasoning"
       - "Research assistant"

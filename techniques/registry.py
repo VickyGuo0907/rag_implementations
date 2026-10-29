@@ -153,8 +153,8 @@ TECHNIQUES: dict[str, dict] = {
         "complexity": 4,
         "latency": "High",
         "accuracy": "High",
-        "status": "stub",
-        "description": "Process images/tables alongside text and retrieve cross-modally",
+        "status": "implemented",
+        "description": "Caption images and summarize tables into the index, answer with the originals",  # noqa: E501
     },
 }
 
@@ -189,6 +189,8 @@ IMPLEMENTATIONS: dict[tuple[str, str], str] = {
     ("raptor_rag", "llamaindex"): "techniques.12_raptor_rag.llamaindex_impl.RaptorRAGLlamaIndex",
     ("agentic_rag", "langchain"): "techniques.13_agentic_rag.langchain_impl.AgenticRAGLangChain",
     ("agentic_rag", "llamaindex"): "techniques.13_agentic_rag.llamaindex_impl.AgenticRAGLlamaIndex",
+    ("multimodal_rag", "langchain"): "techniques.14_multimodal_rag.langchain_impl.MultimodalRAGLangChain",  # noqa: E501
+    ("multimodal_rag", "llamaindex"): "techniques.14_multimodal_rag.llamaindex_impl.MultimodalRAGLlamaIndex",  # noqa: E501
 }
 
 

@@ -26,11 +26,11 @@ def test_all_fourteen_techniques_present():
 
 
 def test_implemented_vs_stub_counts():
-    """13 techniques implemented, 1 stub."""
+    """all 14 techniques implemented."""
     implemented = get_techniques(status="implemented")
     stubs = get_techniques(status="stub")
-    assert len(implemented) == 13
-    assert len(stubs) == 1
+    assert len(implemented) == 14
+    assert len(stubs) == 0
 
 
 def test_implemented_techniques_have_both_frameworks():
@@ -56,13 +56,21 @@ def test_load_class_returns_base_rag_subclass():
 def test_load_class_unknown_combo_raises_keyerror():
     """An unimplemented combo raises KeyError."""
     with pytest.raises(KeyError):
-        load_class("multimodal_rag", "langchain")
+        load_class("nonexistent_rag", "langchain")
 
 
-def test_is_registered_stub_technique():
-    """Stub techniques are registered for zero frameworks."""
-    assert not is_registered("multimodal_rag", "langchain")
-    assert not is_implemented("multimodal_rag")
+def test_is_registered_unknown_technique():
+    """Unknown techniques are registered for zero frameworks."""
+    assert not is_registered("nonexistent_rag", "langchain")
+    assert not is_implemented("nonexistent_rag")
+
+
+@pytest.mark.parametrize("key", ["agentic_rag", "multimodal_rag"])
+def test_tier4_agentic_and_multimodal_are_routable(key):
+    """Agentic and Multi-modal RAG are implemented for both frameworks."""
+    assert is_implemented(key)
+    assert is_registered(key, "langchain")
+    assert is_registered(key, "llamaindex")
 
 
 def test_raptor_rag_is_registered_and_routable():

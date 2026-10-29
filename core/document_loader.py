@@ -19,6 +19,9 @@ from core.config_loader import ConfigLoader
 # Document Loading
 # ---------------------------------------------------------------------------
 
+_IMAGE_EXTS = (".png", ".jpg", ".jpeg", ".gif", ".webp")
+
+
 def _get_loader_for_file(file_path: str):
     """Return instantiated loader based on file extension."""
     from langchain_community.document_loaders import (
@@ -60,6 +63,7 @@ def load_documents(source: str, glob: str = "**/*.*") -> list[Any]:
             str(source_path),
             glob=glob,
             loader_cls=_get_loader_for_file,
+            exclude=[f"**/*{ext}" for ext in _IMAGE_EXTS],  # referenced assets, not documents
             show_progress=True,
         )
         return loader.load()

@@ -44,3 +44,12 @@ def test_load_documents_sample_docs():
     docs = load_documents("data/sample_docs")
     assert len(docs) > 0
     assert all(getattr(d, "page_content", None) for d in docs)
+
+
+def test_load_documents_directory_skips_image_assets(tmp_path):
+    """Images referenced by documents are assets, not documents: they must not hit TextLoader."""
+    (tmp_path / "report.md").write_text("# Report\n![c](chart.png)")
+    (tmp_path / "chart.png").write_bytes(b"\x89PNG\r\n\x1a\n\xff\xfe\x00")
+    docs = load_documents(str(tmp_path))
+    assert len(docs) == 1
+    assert docs[0].metadata["source"].endswith("report.md")

@@ -360,8 +360,11 @@ rag_techniques:
       - text
       - image
       - table
-    image_captioning: true
-    table_extraction: true
+    vision_model: null              # null = reuse lmstudio.model; must accept image input
+    image_captioning: true          # Caption ![alt](path) images and PDF-embedded images
+    table_extraction: true          # Summarize markdown pipe tables
+    max_answer_images: 2            # Retrieved images attached to the answer prompt
+    min_image_bytes: 5000           # Skip PDF-embedded icons/bullets smaller than this
     use_cases:
       - "PDF documents with charts/figures"
       - "Scientific papers"

@@ -63,7 +63,9 @@ flowchart TD
 
 ---
 
-## Data Flow
+## Data Flow Diagram
+
+![Agentic RAG Data Flow](agentic_rag_dataflow.png)
 
 **Offline:** Documents → Chunks → Embeddings → Vector Store (identical to Naive RAG).
 

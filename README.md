@@ -92,7 +92,7 @@ Edit `config/config.yaml` — the minimum you need to change:
 
 ```yaml
 lmstudio:
-  model: "your-model-name"    # e.g., "qwen/qwen3.5-35b-a3b"
+  model: "your-model-name"    # e.g., "qwen/qwen3.6-35b-a3b"
 
 embeddings:
   provider: "huggingface"     # Use HuggingFace (local, no server needed)

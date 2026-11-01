@@ -8,6 +8,8 @@ and what to retrieve, can iterate with refined queries, and can use a calculator
 
 import logging
 
+from llama_index.core.llms import ChatMessage
+
 from core.base_rag import BaseRAG, Document, RAGResult
 from core.config_loader import ConfigLoader
 from core.embeddings import get_llamaindex_embeddings
@@ -73,8 +75,8 @@ class AgenticRAGLlamaIndex(BaseRAG):
         logger.info("[AgenticRAG/LI] Indexing complete ✓")
 
     def _complete(self, prompt: str) -> str:
-        """Single LLM completion used by the ReAct loop."""
-        return self.llm.complete(prompt).text
+        """One ReAct LLM turn via the chat API, so the model's chat template applies."""
+        return self.llm.chat([ChatMessage(role="user", content=prompt)]).message.content or ""
 
     def _build_tools(self, retrieved: list) -> dict[str, Tool]:
         """Build the enabled tools; retrieval appends every hit to `retrieved`."""

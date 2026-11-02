@@ -38,6 +38,25 @@ def get_langchain_llm(config_key: str = "lmstudio"):
     )
 
 
+def _chat_openai_class():
+    """
+    LlamaIndex OpenAI subclass that always reports itself as a chat model.
+
+    LlamaIndex infers chat support from the model name, so LMStudio names fall back to
+    raw /v1/completions: no chat template is applied, reasoning traces leak into answers
+    and chat-tuned models can emit EOS immediately.
+    """
+    from llama_index.llms.openai import OpenAI
+
+    class ChatOpenAI(OpenAI):
+        @property
+        def metadata(self):
+            """Same metadata as OpenAI, with is_chat_model forced on."""
+            return super().metadata.model_copy(update={"is_chat_model": True})
+
+    return ChatOpenAI
+
+
 def get_llamaindex_llm(config_key: str = "lmstudio"):
     """
     Returns a LlamaIndex OpenAI LLM instance pointed at LMStudio.
@@ -51,7 +70,7 @@ def get_llamaindex_llm(config_key: str = "lmstudio"):
     Note: Patches LlamaIndex's model validation to allow custom model names
     from LMStudio (which aren't in OpenAI's official list).
     """
-    from llama_index.llms.openai import OpenAI, base, utils
+    from llama_index.llms.openai import base, utils
 
     # Get the original function from utils module
     original_func = utils.openai_modelname_to_contextsize
@@ -71,7 +90,7 @@ def get_llamaindex_llm(config_key: str = "lmstudio"):
     cfg = ConfigLoader.get()
     lm_cfg = cfg[config_key]
 
-    return OpenAI(
+    return _chat_openai_class()(
         api_base=lm_cfg["base_url"],
         api_key=lm_cfg["api_key"],
         model=lm_cfg["model"],

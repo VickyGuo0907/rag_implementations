@@ -1,520 +1,238 @@
-# RAG Technique Summary
-### A Senior Architect's Reference Implementation
+# RAG Techniques — A Reference Implementation of 14 Patterns
 
-> Comprehensive guide and production-quality implementations of 14 RAG techniques  
-> using **LangChain** and **LlamaIndex** with **LMStudio** (local LLM).  
-> Based on: [NirDiamant/RAG_Techniques](https://github.com/NirDiamant/RAG_Techniques)
-
----
-
-## Project Structure
-
-```
-RAG_technique_summary/
-├── config/
-│   └── config.yaml                    # ← All settings live here
-│
-├── core/                              # Shared infrastructure
-│   ├── base_rag.py                    # Abstract base class for all RAG
-│   ├── config_loader.py               # Singleton YAML config loader
-│   ├── llm_client.py                  # LMStudio LLM factory
-│   ├── embeddings.py                  # Embedding model factory
-│   ├── vector_store.py                # Vector store factory
-│   └── document_loader.py             # Document loading & chunking
-│
-├── techniques/                        # 14 RAG implementations
-│   ├── 01_naive_rag/                  ✅ Full implementation
-│   │   ├── __init__.py                # Clean exports (LangChain + LlamaIndex)
-│   │   ├── langchain_impl.py          # 154 lines, LCEL chain with ChromaDB
-│   │   ├── llamaindex_impl.py         # 117 lines, VectorStoreIndex + QueryEngine
-│   │   └── README.md                  # Flowchart, comparison, use cases, pros/cons
-│   ├── 02_advanced_rag/               ✅ Full implementation
-│   ├── 03_hyde_rag/                   ✅ Full implementation
-│   ├── 04_query_transform_rag/        ✅ Full implementation
-│   ├── 05_fusion_rag/                 ✅ Full implementation
-│   ├── 06_parent_document_rag/        ✅ Full implementation
-│   ├── 07_reranking_rag/              ✅ Full implementation
-│   ├── 08_self_rag/                   ✅ Full implementation
-│   ├── 09_corrective_rag/             ✅ Full implementation
-│   ├── 10_adaptive_rag/               ✅ Full implementation
-│   ├── 11_graph_rag/                  ✅ Full implementation
-│   ├── 12_raptor_rag/                  ✅ Full implementation
-│   ├── 13_agentic_rag/                ✅ Full implementation
-│   └── 14_multimodal_rag/             ✅ Full implementation
-│
-├── evaluation/
-│   ├── ragas_evaluator.py             # RAGAS evaluation framework
-│   └── __init__.py
-│
-├── data/
-│   └── sample_docs/                   # Sample documents for testing
-│
-├── main.py                            # 🚀 Main CLI entry point
-├── app.py                             # 🌐 Streamlit web interface
-│
-├── pyproject.toml                     # Single source of dependency truth
-└── README.md                          # ← You are here
-```
+> Production-quality reference implementations of **14 RAG techniques**, each built in both **LangChain** and **LlamaIndex**, under one consistent architecture with **RAGAS** evaluation and a CLI + web UI.
+> Runs locally on **LMStudio** (local LLM). For learning, comparison, and as a design reference.
+> Technique catalog adapted from [NirDiamant/RAG_Techniques](https://github.com/NirDiamant/RAG_Techniques); the architecture, dual-framework abstraction, evaluation harness, and decision guide are original to this repo.
 
 ---
 
-### 📋 Supported Document Types
+## Contents
 
-| Type | Support | Notes |
-|------|---------|-------|
-| `.txt` | ✅ Full | Plain text files |
-| `.md` | ✅ Full | Markdown files |
-| `.pdf` | ✅ Full | Binary PDF files (via pypdf) |
-| `.csv` | ✅ Full | Comma-separated values |
-| `.docx` / `.doc` | ✅ Full | Microsoft Word documents |
-| `.html` | ✅ URL | Via WebBaseLoader for URLs |
+- [What this is (and isn't)](#what-this-is-and-isnt)
+- [Quick start](#quick-start)
+- [The 14 techniques](#the-14-techniques)
+- [Which RAG should I use?](#which-rag-should-i-use)
+- [Benchmark results](#benchmark-results)
+- [Architecture principles](#architecture-principles)
+- [CLI reference](#cli-reference)
+- [Configuration & troubleshooting](#configuration--troubleshooting)
+- [References](#references)
 
 ---
 
-## Quick Start
+## What this is (and isn't)
+
+**What it is:** a clean, abstracted, config-driven implementation of 14 RAG patterns you can run, compare, and evaluate locally. Every technique shares one interface (`BaseRAG`), ships in both LangChain and LlamaIndex, and is measurable with RAGAS. It's a reference for *how the patterns differ and when to use each*, not a deployed service.
+
+**What production would add** — being explicit about the line is the point:
+
+| Concern | This repo | Production |
+|---|---|---|
+| LLM serving | Local LMStudio | Managed endpoint (AWS Bedrock / vLLM on GPU), autoscaling, fallback model + routing |
+| Embeddings | Local HF MiniLM on CPU/MPS | Batched embedding service, GPU, caching |
+| Vector store | ChromaDB (local) | Managed/distributed (OpenSearch, pgvector, Qdrant, Pinecone) with replication |
+| Ingestion | Folder of sample docs | Pipeline with change-data-capture, dedup, incremental re-index |
+| Retrieval @ scale | In-memory, small corpus | Sharding, hybrid search, ANN tuning, p95 latency budgets |
+| Evaluation | RAGAS on demand | Eval as a CI gate; regression alerts on every change |
+| Observability | Console / RAGAS output | Tracing (OpenTelemetry), prompt/version logging, dashboards, alerting |
+| Security | None | AuthN/Z, PII handling, data residency, prompt-injection defense on retrieved text |
+| Cost | Local (free) | Token budgeting, cache hit-rate tracking, per-request cost monitoring |
+| Reliability | Single process | Retries, timeouts, rate-limit handling, graceful degradation |
+
+**Reference deployment (how one of these would ship on AWS):**
+> Documents land in **S3** → an ingestion job (Lambda/ECS) parses and chunks them → embeddings via **Bedrock** (or a vLLM endpoint) → vectors in **OpenSearch** or **pgvector (RDS)**. Query path: **API Gateway → Lambda/ECS** running the RAG technique, with a **reranker** before the **Bedrock** generation call. **RAGAS** runs as a scheduled eval job and a CI gate; **CloudWatch + OpenTelemetry** carry traces, latency, and cost. Guardrails (input/output filtering, injection defense on retrieved text) wrap the LLM call.
+
+---
+
+## Quick start
 
 ### 1. Prerequisites
-
 ```bash
-# Install LMStudio: https://lmstudio.ai
-# Load a model (e.g., llama-3.1-8b-instruct) and start the server on port 1234
+# Install LMStudio (https://lmstudio.ai), load a model
+# (e.g. llama-3.1-8b-instruct), start the server on port 1234.
 
-# Clone / unzip this project
-cd RAG_technique_summary
-
-# Install dependencies
+git clone https://github.com/VickyGuo0907/rag_implementations.git
+cd rag_implementations
 pip install .
 ```
 
 ### 2. Configure
-
-Edit `config/config.yaml` — the minimum you need to change:
-
+Everything lives in `config/config.yaml`. The minimum to set:
 ```yaml
 lmstudio:
-  model: "your-model-name"    # e.g., "qwen/qwen3.6-35b-a3b"
-
+  model: "your-model-name"
 embeddings:
-  provider: "huggingface"     # Use HuggingFace (local, no server needed)
+  provider: "huggingface"        # local, no server needed (recommended)
   huggingface_fallback:
-    model: "sentence-transformers/all-MiniLM-L6-v2"  # Or any HF model
-    device: "cpu"             # Options: cpu, cuda, mps (M-series Macs)
+    model: "sentence-transformers/all-MiniLM-L6-v2"
+    device: "cpu"                # cpu | cuda | mps (Apple Silicon)
 ```
 
-**Note on Embeddings:**
-- **Recommended**: HuggingFace embeddings (works with both LangChain & LlamaIndex, local, no server)
-- **Alternative**: LMStudio embeddings work with LlamaIndex only (model name must be standard OpenAI name like `text-embedding-3-small`)
-
-### 3. Run with CLI
-
+### 3. Run
 ```bash
-# Discover available techniques
-python main.py list
-
-# Get technique details
-python main.py info naive_rag
-
-# LangChain version (interactive mode, default sample docs)
+# CLI — interactive
 python main.py run --technique naive_rag --framework langchain
 
-# LlamaIndex version
-python main.py run --technique naive_rag --framework llamaindex
+# CLI — single query, with evaluation
+python main.py run --technique naive_rag --query "What is RAG?" --evaluate
 
-# Single query
-python main.py run \
-  --technique naive_rag \
-  --framework langchain \
-  --docs ./data/sample_docs \
-  --query "What is RAG and how does it work?"
-
-# With RAGAS evaluation
-python main.py run --technique naive_rag --evaluate
-
-# Evaluate technique quality
-python main.py eval --technique naive_rag --framework langchain
-
-# Load both text and PDF documents
-python main.py run \
-  --technique naive_rag \
-  --framework langchain \
-  --docs ./data/sample_docs \
-  --query "Explain the key concepts"
-
-# View configuration
-python main.py config show
-python main.py config validate
+# Web UI
+streamlit run app.py            # opens http://localhost:8501
 ```
 
-### 4. Run with Web Interface (Streamlit)
-
-```bash
-# Start the Streamlit web app
-streamlit run app.py
-
-# App will open at http://localhost:8501
-```
-
-**Features:**
-- 🎯 **Technique Selection** — Dropdown to choose any RAG technique
-- 🔧 **Framework Toggle** — Switch between LangChain and LlamaIndex
-- 📁 **Document Path** — Load custom documents or use defaults
-- 💬 **Interactive Queries** — Ask questions and see results in real-time
-- 📊 **Result Display** — Answer with latency, technique, and framework metrics
-- 📚 **Source Documents** — Expandable cards showing retrieved sources with metadata
-- 🔬 **RAGAS Evaluation** — Optional evaluation with quality metrics visualization
-
-Example workflow:
-1. Select **Naive RAG** from the technique dropdown
-2. Choose **LangChain** as the framework
-3. Click **🚀 Initialize RAG** to load and index documents
-4. Enter a question: "What is RAG?"
-5. Click **🔍 Ask** to get the answer
-6. Expand sources to see retrieved documents
-7. Run **📊 Evaluation** for quality metrics
-
-### 5. Run from Python
-
+### 4. Use from Python
 ```python
 from core.config_loader import ConfigLoader
-from techniques.naive_rag import NaiveRAGLangChain, NaiveRAGLlamaIndex
+from techniques.registry import load_class
 
-cfg = ConfigLoader.get()
-
-# Use either implementation interchangeably
-rag = NaiveRAGLangChain(config=cfg._config)
-# or: rag = NaiveRAGLlamaIndex(config=cfg._config)
-
-rag.index([
-    "RAG combines retrieval systems with language models...",
-    "The key components are: indexer, vector store, retriever, and LLM...",
-])
-
-result = rag.query("What are the components of a RAG system?")
-result.print_summary()
+# any technique key + "langchain" | "llamaindex"
+rag = load_class("naive_rag", "langchain")(config=ConfigLoader.get()._config)
+rag.index(["RAG combines retrieval with language models...",
+           "Components: indexer, vector store, retriever, LLM..."])
+print(rag.query("What are the components of a RAG system?").answer)
 ```
 
-### 6. Verify Installation
-
-```bash
-# Test document loading (PDF + text files)
-python -c "
-from core.document_loader import load_documents
-docs = load_documents('data/sample_docs')
-print(f'✅ Loaded {len(docs)} documents')
-"
-
-# Test CLI
-python main.py list          # List techniques
-python main.py info naive_rag # Get technique info
-
-# Test both implementations
-python main.py run --technique naive_rag --framework langchain --query "Test"
-python main.py run --technique naive_rag --framework llamaindex --query "Test"
-```
+> Any technique is swappable through the same `BaseRAG` interface — change the technique key above.
 
 ---
 
-## CLI Reference
+## The 14 techniques
 
-**Main entry point: `python main.py <command> [options]`**
+Grouped by **what kind of problem they solve**, not by difficulty — complexity overlaps across tiers.
 
-### Commands
+**Tier 1 — Foundational** · the retrieve-then-generate baseline everything builds on
+| # | Technique | Complexity | Latency | Accuracy |
+|---|---|:-:|:-:|:-:|
+| 01 | Naive RAG | ⭐ | Low | Moderate |
+| 02 | Advanced RAG | ⭐⭐⭐ | Medium | High |
+
+**Tier 2 — Query & retrieval enhancement** · linear improvements to one pipeline stage
+| # | Technique | Complexity | Latency | Accuracy |
+|---|---|:-:|:-:|:-:|
+| 03 | HyDE RAG | ⭐⭐ | Medium | High |
+| 04 | Query Transform RAG | ⭐⭐ | Medium | High |
+| 05 | Fusion RAG | ⭐⭐⭐ | Medium | High |
+| 06 | Parent Document RAG | ⭐⭐ | Low | High |
+| 07 | Reranking RAG | ⭐⭐ | Medium | High |
+
+**Tier 3 — Adaptive & self-reflective** · real control flow: self-critique, correction, routing
+| # | Technique | Complexity | Latency | Accuracy |
+|---|---|:-:|:-:|:-:|
+| 08 | Self-RAG | ⭐⭐⭐⭐ | High | High |
+| 09 | Corrective RAG (CRAG) | ⭐⭐⭐⭐ | High | Very High |
+| 10 | Adaptive RAG | ⭐⭐⭐ | Varies | High |
+
+**Tier 4 — Structural & specialized** · different data structures / machinery
+| # | Technique | Complexity | Latency | Accuracy |
+|---|---|:-:|:-:|:-:|
+| 11 | GraphRAG | ⭐⭐⭐⭐⭐ | High | Very High |
+| 12 | RAPTOR | ⭐⭐⭐⭐⭐ | High | Very High |
+| 13 | Agentic RAG | ⭐⭐⭐⭐⭐ | High | Very High |
+| 14 | Multi-modal RAG | ⭐⭐⭐⭐ | High | High |
+
+Each lives in `techniques/NN_name/` with a `langchain_impl.py`, a `llamaindex_impl.py`, and a `README.md` (flowchart, use cases, pros/cons).
+
+**Supported documents:** `.txt`, `.md`, `.pdf` (pypdf), `.csv`, `.docx`/`.doc`, `.html` (URL via WebBaseLoader).
+
+---
+
+## Which RAG should I use?
+
+```
+What is your primary requirement?
+├─ SPEED, latency is top priority        → Naive (01) or Parent Document (06)
+├─ ACCURACY in production
+│   ├─ standard doc Q&A                   → Advanced (02) + Reranking (07)
+│   ├─ vocabulary mismatch (users vs docs)→ HyDE (03)
+│   ├─ ambiguous / multi-faceted queries  → Fusion (05)
+│   └─ must verify / self-correct         → Self-RAG (08) or CRAG (09)
+├─ RELATIONSHIPS, multi-hop reasoning
+│   ├─ entities / knowledge graphs        → GraphRAG (11)
+│   └─ hierarchical docs (books, reports) → RAPTOR (12)
+├─ AUTOMATION, multi-step tasks           → Agentic (13)
+├─ MULTIMODAL, images/tables              → Multi-modal (14)
+├─ COST, mixed query types                → Adaptive (10) — routes simple queries to no-retrieval
+└─ PROTOTYPING                            → start Naive (01), baseline, then upgrade
+```
+
+| Use case | Primary | Secondary |
+|---|---|---|
+| Customer support FAQ | Naive / Advanced | Reranking |
+| Enterprise knowledge base | Advanced | Fusion |
+| Legal document research | Corrective (CRAG) | Reranking |
+| Medical Q&A | Self-RAG | Corrective |
+| Technical documentation | HyDE | Advanced |
+| Research paper assistant | RAPTOR | GraphRAG |
+| Multi-source intelligence | Agentic | Fusion |
+| Product catalog with images | Multi-modal | Advanced |
+| Financial reports | GraphRAG | RAPTOR |
+| Real-time information | Corrective (web) | Agentic |
+
+---
+
+## Benchmark results
+
+> Run `python main.py run --technique <t> --evaluate` across the dataset and fill this in. Structured-but-empty is fine; placeholder numbers are not.
+
+**Methodology** — Dataset: `<name / # Q-A pairs>` · Generation: `<model>` · Embeddings: `all-MiniLM-L6-v2` · Retrieval: top_k=`<n>`, chunk=`<n>`/overlap=`<n>` · Metrics: RAGAS (faithfulness, answer relevancy, context precision, context recall) + mean latency.
+
+| # | Technique | Faithful. | Ans. Rel. | Ctx Prec. | Ctx Recall | Latency (s) | Notes |
+|---|---|:-:|:-:|:-:|:-:|:-:|---|
+| 01 | Naive (baseline) | — | — | — | — | — | baseline |
+| 02 | Advanced | — | — | — | — | — | |
+| 07 | Reranking | — | — | — | — | — | |
+| 03 | HyDE | — | — | — | — | — | |
+| 09 | Corrective (CRAG) | — | — | — | — | — | |
+| 11 | GraphRAG | — | — | — | — | — | multi-hop set |
+
+**Findings:** *(2–3 sentences once measured — e.g. "Reranking lifted context precision from X to Y at +Zs; CRAG gave the biggest faithfulness gain on the adversarial subset but ~2× cost. Best accuracy-per-dollar on this corpus: Advanced RAG.")*
+
+---
+
+## Architecture principles
+
+1. **One abstraction.** Every technique inherits `BaseRAG`: `index(docs)` → `query(question)` → `RAGResult` (answer + sources + metadata). Techniques are interchangeable in any app.
+2. **Configuration-first.** Zero hardcoded values — model, embeddings, vector store, chunk size, top_k, reranker all live in `config/config.yaml`. Change once, every technique follows.
+3. **Dual-framework.** Each technique has a LangChain and a LlamaIndex implementation behind the same interface — LangChain for custom chains/agents, LlamaIndex for out-of-the-box pipelines and connectors.
+4. **Evaluation loop.** Baseline → measure (RAGAS) → add complexity → measure again. Never add a technique without measuring what it bought.
+5. **Consistent quality bar.** Type hints, docstrings, error handling + logging, framework-independent abstractions across all implementations.
+
+**Adding a technique:** create `techniques/NN_name/`, implement `langchain_impl.py` + `llamaindex_impl.py` from `BaseRAG` (`_build_pipeline`, `index`, `_query`), add a `README.md`, and register in `techniques/registry.py` (`TECHNIQUES` + `IMPLEMENTATIONS`).
+
+---
+
+## CLI reference
+
+`python main.py <command> [options]`
 
 | Command | Purpose |
-|---------|---------|
-| `run` | Execute a RAG technique with optional query and evaluation |
-| `list` | Display all available techniques with complexity and status |
-| `info <technique>` | Show detailed information about a specific technique |
-| `eval` | Evaluate a technique using RAGAS metrics |
-| `config` | Show or validate project configuration |
+|---|---|
+| `run` | Execute a technique, with optional `--query` and `--evaluate` |
+| `list` | All techniques with complexity and status |
+| `info <technique>` | Details for one technique |
+| `eval` | Evaluate a technique with RAGAS |
+| `config show` / `config validate` | Inspect or validate configuration |
 
-### Examples
+**`run` options:** `--technique` (required) · `--framework langchain|llamaindex` (default langchain) · `--docs <path>` (default `./data/sample_docs`) · `--query "<q>"` (omit for interactive) · `--config <path>` · `--evaluate`.
 
-```bash
-# Run with defaults (interactive mode, LangChain, sample docs)
-python main.py run --technique naive_rag
-
-# Run with custom parameters
-python main.py run \
-  --technique advanced_rag \
-  --framework llamaindex \
-  --docs ./my_documents \
-  --query "What is the main topic?" \
-  --evaluate
-
-# List all techniques with metadata
-python main.py list
-
-# Get detailed technique information
-python main.py info hyde_rag
-
-# Evaluate technique quality
-python main.py eval --technique naive_rag
-
-# Manage configuration
-python main.py config show      # Display current config
-python main.py config validate  # Validate config file
-```
-
-### Run Command Options
-
-```
---technique TECHNIQUE   : RAG technique (required)
---framework FRAMEWORK   : langchain or llamaindex (default: langchain)
---docs DOCS            : Path to documents (default: ./data/sample_docs)
---query QUERY          : Single query (omit for interactive mode)
---config CONFIG        : Custom config.yaml path (default: ./config/config.yaml)
---evaluate             : Run RAGAS evaluation after querying
-```
+**CLI vs Web UI:** CLI for automation, scripting, batch eval; Streamlit UI for interactive exploration and demos (technique dropdown, framework toggle, source cards, RAGAS charts).
 
 ---
 
-## CLI vs Web Interface Comparison
+## Configuration & troubleshooting
 
-| Feature | CLI | Web UI |
-|---------|-----|--------|
-| **Use Case** | Automation, scripting, batch processing | Interactive exploration, demos, user-friendly interface |
-| **Learning Curve** | Moderate (need to know commands) | Gentle (visual, point-and-click) |
-| **Technique Selection** | Command-line flag | Dropdown menu |
-| **Framework Toggle** | Command-line flag | Radio buttons |
-| **Query Mode** | Single query or interactive terminal | Interactive web form |
-| **Results Display** | Terminal output with formatting | Rich HTML with styled cards |
-| **Source Documents** | Printed to console | Expandable cards with metadata |
-| **Evaluation** | Terminal output with metrics | Charts and metric tiles |
-| **Session State** | Per-run | Persistent across interactions (cached) |
-| **Best For** | Production pipelines, testing | Demos, user testing, exploration |
+`config/config.yaml` sections: `lmstudio`, `embeddings`, `vector_store` (ChromaDB/FAISS/Qdrant), `document` (chunk size/overlap), `retrieval` (top_k, search type, reranking), `evaluation` (RAGAS), `rag_techniques` (per-technique).
 
-**Choose CLI if:** You need to automate RAG evaluation, integrate with scripts, or run batch queries  
-**Choose Web UI if:** You want to interactively explore techniques, demo to stakeholders, or test on real documents
-
----
-
-## RAG Technique Overview & Decision Guide
-
-### Technique Comparison Matrix
-
-Techniques are grouped into four tiers by *what kind of problem they solve*, not just difficulty — complexity scores overlap between tiers, since a tier is about the shape of the technique (linear enhancement vs. control flow vs. structural rework), not a difficulty ladder.
-
-#### Tier 1 — Foundational
-The baseline retrieve-then-generate pipeline everything else builds on.
-
-| # | Technique | Complexity | Latency | Accuracy | Status |
-|---|-----------|:----------:|:-------:|:--------:|:------:|
-| 01 | Naive RAG | ⭐ | 🟢 Low | 🟡 Moderate | ✅ Done |
-| 02 | Advanced RAG | ⭐⭐⭐ | 🟡 Medium | 🟢 High | ✅ Done |
-
-#### Tier 2 — Query & Retrieval Enhancement
-Single-purpose improvements to one stage of the pipeline — query formulation, chunking, or ranking. Still a linear flow: no branching, no loops, no self-critique.
-
-| # | Technique | Complexity | Latency | Accuracy | Status |
-|---|-----------|:----------:|:-------:|:--------:|:------:|
-| 03 | HyDE RAG | ⭐⭐ | 🟡 Medium | 🟢 High | ✅ Done |
-| 04 | Query Transform RAG | ⭐⭐ | 🟡 Medium | 🟢 High | ✅ Done |
-| 05 | Fusion RAG | ⭐⭐⭐ | 🟡 Medium | 🟢 High | ✅ Done |
-| 06 | Parent Document RAG | ⭐⭐ | 🟢 Low | 🟢 High | ✅ Done |
-| 07 | Reranking RAG | ⭐⭐ | 🟡 Medium | 🟢 High | ✅ Done |
-
-#### Tier 3 — Adaptive & Self-Reflective
-Introduces actual control flow: the pipeline critiques its own output, grades retrieval quality and corrects itself, or routes to a different strategy based on query classification.
-
-| # | Technique | Complexity | Latency | Accuracy | Status |
-|---|-----------|:----------:|:-------:|:--------:|:------:|
-| 08 | Self-RAG | ⭐⭐⭐⭐ | 🔴 High | 🟢 High | ✅ Done |
-| 09 | Corrective RAG | ⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | ✅ Done |
-| 10 | Adaptive RAG | ⭐⭐⭐ | 🟡 Varies | 🟢 High | ✅ Done |
-
-#### Tier 4 — Structural & Specialized
-Needs fundamentally different data structures or machinery — knowledge graphs, hierarchical cluster trees, tool-using agents, cross-modal content — rather than being a retrieval/generation variant.
-
-| # | Technique | Complexity | Latency | Accuracy | Status |
-|---|-----------|:----------:|:-------:|:--------:|:------:|
-| 11 | GraphRAG | ⭐⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | ✅ Done |
-| 12 | RAPTOR | ⭐⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | ✅ Done |
-| 13 | Agentic RAG | ⭐⭐⭐⭐⭐ | 🔴 High | 🟢 Very High | ✅ Done |
-| 14 | Multi-modal RAG | ⭐⭐⭐⭐ | 🔴 High | 🟢 High | ✅ Done |
-
----
-
-### Decision Flowchart: Which RAG Should I Use?
-
-```
-START: What is your primary requirement?
-│
-├─ 🚀 SPEED — Is latency the top priority?
-│   └─ → Use Naive RAG (01) or Parent Document RAG (06)
-│
-├─ 🎯 ACCURACY — Need high accuracy in production?
-│   ├─ Standard Q&A over documents → Advanced RAG (02) + Reranking (07)
-│   ├─ Vocabulary mismatch (users vs. docs) → HyDE RAG (03)
-│   ├─ Ambiguous / multi-faceted queries → Fusion RAG (05)
-│   └─ Must verify and self-correct → Self-RAG (08) or CRAG (09)
-│
-├─ 🔗 RELATIONSHIPS — Do you need multi-hop reasoning?
-│   ├─ Entity relationships, knowledge graphs → GraphRAG (11)
-│   └─ Hierarchical doc structure (books, reports) → RAPTOR (12)
-│
-├─ 🤖 AUTOMATION — Complex, multi-step tasks?
-│   └─ → Agentic RAG (13)
-│
-├─ 📸 MULTIMODAL — Documents with images/tables?
-│   └─ → Multi-modal RAG (14)
-│
-├─ 💰 COST — Mixed query types, want to save tokens?
-│   └─ → Adaptive RAG (10) — routes simple queries to no-retrieval
-│
-└─ 🧪 PROTOTYPING — Just getting started?
-    └─ → Start with Naive RAG (01), baseline everything, then upgrade
-```
-
----
-
-### Use Case → Recommended RAG Technique
-
-| Use Case | Primary | Secondary |
-|----------|---------|-----------|
-| Customer support FAQ | Naive RAG or Advanced RAG | Reranking RAG |
-| Enterprise knowledge base | Advanced RAG | Fusion RAG |
-| Legal document research | Corrective RAG | Reranking RAG |
-| Medical Q&A | Self-RAG | Corrective RAG |
-| Technical documentation | HyDE RAG | Advanced RAG |
-| Research paper assistant | RAPTOR | GraphRAG |
-| Multi-source intelligence | Agentic RAG | Fusion RAG |
-| Product catalog with images | Multi-modal RAG | Advanced RAG |
-| Financial reports | GraphRAG | RAPTOR |
-| Real-time information | Corrective RAG (web search) | Agentic RAG |
-| Code documentation | HyDE RAG | Advanced RAG |
-| Teaching / EdTech | Adaptive RAG | Self-RAG |
-
----
-
-## Architecture Principles (Senior Architect Notes)
-
-### 1. The Abstraction Layer
-Every technique inherits from `BaseRAG`, which enforces a consistent interface:
-- `index(documents)` — always called before querying
-- `query(question)` → `RAGResult` — standardized output with sources + metadata
-- `get_info()` — self-describing metadata
-
-This means you can swap techniques transparently in any application:
-```python
-rag: BaseRAG = NaiveRAGLangChain(config)  # or AdvancedRAGLangChain, HyDERAGLangChain...
-rag.index(docs)
-result = rag.query("What is the capital of France?")
-```
-
-### 2. Configuration-First Design
-Zero hardcoded values. Every parameter lives in `config/config.yaml`:
-- LLM settings (model, temperature, timeout)
-- Embedding model
-- Vector store provider
-- RAG-specific parameters (chunk_size, top_k, reranker model, etc.)
-
-Change `lmstudio.model` once → all techniques use the new model.
-
-### 3. Dual-Framework Support
-Every technique has LangChain and LlamaIndex implementations:
-- **LangChain**: Better for complex chains, LCEL, custom agents, production pipelines
-- **LlamaIndex**: Better for out-of-the-box RAG pipelines, data connectors, structured data
-
-### 4. The Evaluation Loop
-Always evaluate before and after adding complexity:
-```
-Naive RAG baseline → Measure RAGAS scores → Add Advanced RAG → Measure again → ...
-```
-The `RAGASEvaluator` makes this easy and consistent across all techniques.
-
-### 5. Code Quality Standards
-
-All implementations follow these standards:
-- ✅ No unused imports
-- ✅ Comprehensive docstrings
-- ✅ Type hints on all functions
-- ✅ Clear error handling with logging
-- ✅ Consistent with BaseRAG interface
-- ✅ Framework-independent abstractions
-- ✅ Both LangChain and LlamaIndex support
-
-Example: `01_naive_rag` is fully production-ready with clean code, detailed documentation, and dual-framework support.
-
-### 6. Implementing a New Technique
-1. Create `techniques/XX_name/` directory
-2. Create `langchain_impl.py` inheriting from `BaseRAG`
-3. Create `llamaindex_impl.py` (same interface)
-4. Set `TECHNIQUE_NAME` and `FRAMEWORK` class attributes
-5. Implement `_build_pipeline()`, `index()`, and `_query()`
-6. Create `README.md` with flowchart, use cases, comparison, and pros/cons
-7. Register in `main.py`:
-   - Add to `TECHNIQUE_CLASSES` mapping
-   - Add to `TECHNIQUES_METADATA` with technique details
-8. Test: `python main.py run --technique your_technique --framework langchain`
-
----
-
-## Troubleshooting
-
-### Embedding Model Issues
-
-**Error: "OpenAIEmbeddingModelType is not valid"**
-- **Cause**: Using custom embedding model name with LlamaIndex + OpenAI-compatible API
-- **Solution**: Use standard OpenAI model names like `text-embedding-3-small` (Recommended: switch to HuggingFace embeddings)
-
-**Error: "'input' field must be a string or an array"**
-- **Cause**: LangChain + LMStudio embeddings API incompatibility
-- **Solution**: Use HuggingFace embeddings instead (set `embeddings.provider: "huggingface"`)
-
-**Slow embedding generation**
-- **Cause**: Using CPU embeddings without optimization
-- **Solution**: 
-  - Set `device: "mps"` if on M-series Mac (Apple Silicon)
-  - Set `device: "cuda"` if NVIDIA GPU available
-  - Use lighter embedding model: `sentence-transformers/all-MiniLM-L6-v2` (default) or `sentence-transformers/paraphrase-MiniLM-L6-v2`
-
-### Document Loading Issues
-
-**Error: "UnicodeDecodeError" when loading PDF**
-- **Cause**: PDF file treated as text file
-- **Solution**: Ensure `pypdf` is installed (`pip install pypdf`)
-
-**Error: "No module named 'langchain_community.document_loaders'"**
-- **Solution**: Install required dependencies: `pip install .`
-
-### LMStudio Connection Issues
-
-**Error: "Connection refused at localhost:1234"**
-- **Solution**: Ensure LMStudio is running with server enabled (default port 1234)
-
-**Error: "Model not found"**
-- **Solution**: Ensure the model name in `config.yaml` matches exactly what's loaded in LMStudio
-
----
-
-## Configuration Reference
-
-See `config/config.yaml` for the full configuration with inline comments.
-
-Key sections:
-- `lmstudio` — LMStudio server connection and model settings
-- `embeddings` — embedding model selection
-- `vector_store` — ChromaDB / FAISS / Qdrant selection
-- `document` — chunk size, overlap, chunking strategy
-- `retrieval` — top_k, search type, reranking settings
-- `evaluation` — RAGAS metrics configuration
-- `rag_techniques` — per-technique settings
+Common issues:
+- **Embedding model errors / incompatibility** → use HuggingFace embeddings (`embeddings.provider: "huggingface"`); LMStudio embeddings require standard OpenAI model names and work with LlamaIndex only.
+- **Slow embeddings** → set `device: "mps"` (Apple Silicon) or `"cuda"` (NVIDIA); keep the MiniLM model.
+- **PDF `UnicodeDecodeError`** → ensure `pypdf` is installed.
+- **`Connection refused at localhost:1234`** → LMStudio server isn't running, or the config model name doesn't match the loaded model.
 
 ---
 
 ## References
 
-- [Awesome RAG — Curated Collection](https://github.com/Danielskry/Awesome-RAG) — Comprehensive resources, papers, and implementations
-- [RAG Paper — Lewis et al. 2020](https://arxiv.org/abs/2005.11401)
-- [NirDiamant/RAG_Techniques](https://github.com/NirDiamant/RAG_Techniques) — 42 technique notebooks
-- [LangChain — RAG From Scratch](https://github.com/langchain-ai/rag-from-scratch) — notebooks walking through RAG concepts from first principles
-- [RAG From Scratch — YouTube Playlist](https://www.youtube.com/playlist?list=PLfaIDFEXuae2LXbO1_PKyVJiQ23ZztA0x) — companion video series
-- [RAGAS Documentation](https://docs.ragas.io)
-- [LMStudio](https://lmstudio.ai)
-- [LangChain Docs](https://python.langchain.com)
-- [LlamaIndex Docs](https://docs.llamaindex.ai)
-- [HyDE Paper](https://arxiv.org/abs/2212.10496)
-- [RAPTOR Paper](https://arxiv.org/abs/2401.18059)
-- [Self-RAG Paper](https://arxiv.org/abs/2310.11511)
-- [CRAG Paper](https://arxiv.org/abs/2401.15884)
+- [RAG — Lewis et al. 2020](https://arxiv.org/abs/2005.11401) · [HyDE](https://arxiv.org/abs/2212.10496) · [RAPTOR](https://arxiv.org/abs/2401.18059) · [Self-RAG](https://arxiv.org/abs/2310.11511) · [CRAG](https://arxiv.org/abs/2401.15884)
+- [NirDiamant/RAG_Techniques](https://github.com/NirDiamant/RAG_Techniques) (technique catalog this repo adapts) · [LangChain RAG from Scratch](https://github.com/langchain-ai/rag-from-scratch)
+- [RAGAS](https://docs.ragas.io) · [LMStudio](https://lmstudio.ai) · [LangChain](https://python.langchain.com) · [LlamaIndex](https://docs.llamaindex.ai)

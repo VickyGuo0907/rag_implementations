@@ -1,0 +1,42 @@
+[
+  {
+    "question": "What are the four components of a RAG system?",
+    "ground_truth": "A document indexer, a vector database, a retriever, and a generator (LLM)."
+  },
+  {
+    "question": "What does the Burlington Conservation Commission administer and enforce?",
+    "ground_truth": "The Massachusetts Wetlands Protection Act and the associated Burlington Bylaws."
+  },
+  {
+    "question": "How does HyDE retrieve documents?",
+    "ground_truth": "The LLM generates a hypothetical answer document, which is embedded and used for retrieval instead of the raw query, bridging the vocabulary gap between queries and documents."
+  },
+  {
+    "question": "When do I need to file with the Burlington Conservation Commission?",
+    "ground_truth": "For any work within the floodplain, within 100 feet of a wetland, or within 200 feet of a stream."
+  },
+  {
+    "question": "Which vector database is recommended for production deployments and why?",
+    "ground_truth": "Qdrant: it is production-ready, supports filtering on metadata, and scales horizontally."
+  },
+  {
+    "question": "Who should I contact about a blocked culvert in Burlington?",
+    "ground_truth": "The Engineering Department."
+  },
+  {
+    "question": "Who introduced RAG and in what year?",
+    "ground_truth": "RAG was introduced by Lewis et al. in 2020."
+  },
+  {
+    "question": "How does RAG-Fusion combine results from multiple queries?",
+    "ground_truth": "It generates multiple queries from the user's question, retrieves documents for each, and combines the results using Reciprocal Rank Fusion (RRF)."
+  },
+  {
+    "question": "What chunk size works well for most RAG use cases?",
+    "ground_truth": "256-512 tokens."
+  },
+  {
+    "question": "How far ahead of a Conservation Commission meeting must paperwork be submitted?",
+    "ground_truth": "Two weeks before the meeting."
+  }
+]

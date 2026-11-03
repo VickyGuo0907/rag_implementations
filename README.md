@@ -172,20 +172,24 @@ What is your primary requirement?
 
 ## Benchmark results
 
-> Run `python main.py run --technique <t> --evaluate` across the dataset and fill this in. Structured-but-empty is fine; placeholder numbers are not.
+Measured with RAGAS on a small, hand-written set. Treat it as a worked example of the method, not a leaderboard: 6 questions, one run per technique, and a small local judge model, so differences of a few points are noise.
 
-**Methodology** — Dataset: `<name / # Q-A pairs>` · Generation: `<model>` · Embeddings: `all-MiniLM-L6-v2` · Retrieval: top_k=`<n>`, chunk=`<n>`/overlap=`<n>` · Metrics: RAGAS (faithfulness, answer relevancy, context precision, context recall) + mean latency.
+**Methodology** — Dataset: `data/eval/test_questions.json` (first 6 of 10 Q/A pairs, 3 from the RAG overview and 3 from the Burlington FAQ, with reference answers) · Corpus: `ai_and_rag_overview.txt` + `burlington_faq.md` · Generation and judge: `qwen/qwen3-4b-2507` (LMStudio, local) · Embeddings: `all-MiniLM-L6-v2` · Framework: LangChain · Fresh vector store per run · Metrics: RAGAS faithfulness, answer relevancy, context precision, context recall.
 
-| # | Technique | Faithful. | Ans. Rel. | Ctx Prec. | Ctx Recall | Latency (s) | Notes |
-|---|---|:-:|:-:|:-:|:-:|:-:|---|
-| 01 | Naive (baseline) | — | — | — | — | — | baseline |
-| 02 | Advanced | — | — | — | — | — | |
-| 07 | Reranking | — | — | — | — | — | |
-| 03 | HyDE | — | — | — | — | — | |
-| 09 | Corrective (CRAG) | — | — | — | — | — | |
-| 11 | GraphRAG | — | — | — | — | — | multi-hop set |
+| # | Technique | Faithful. | Ans. Rel. | Ctx Prec. | Ctx Recall | Notes |
+|---|---|:-:|:-:|:-:|:-:|---|
+| 01 | Naive (baseline) | 0.83 | 0.59 | 0.74 | 1.00 | baseline |
+| 02 | Advanced | 1.00 | 0.76 | **0.92** | 1.00 | best context precision |
+| 07 | Reranking | 1.00 | **0.89** | 0.86 | 1.00 | best answer relevancy |
+| 03 | HyDE | 1.00 | 0.70 | 0.85 | 0.83 | |
+| 09 | Corrective (CRAG) | 1.00 | 0.68 | 0.83 | 0.67 | lowest context recall |
+| 11 | GraphRAG | — | — | — | — | not run (one LLM call per chunk is slow locally) |
 
-**Findings:** *(2–3 sentences once measured — e.g. "Reranking lifted context precision from X to Y at +Zs; CRAG gave the biggest faithfulness gain on the adversarial subset but ~2× cost. Best accuracy-per-dollar on this corpus: Advanced RAG.")*
+Latency is not reported: the evaluation time includes the judge model's calls, so it says nothing about query speed.
+
+**Findings:** Every technique beat the naive baseline on faithfulness, answer relevancy and context precision, with Reranking giving the best answers (0.59 to 0.89 answer relevancy) and Advanced RAG the cleanest context (0.74 to 0.92 precision). HyDE and CRAG retrieved *less* of the needed information than the baseline (recall 0.83 and 0.67 against 1.00), which is plausible on a tiny, clean corpus where the extra rewriting steps have little to fix. With 6 questions and a 4B judge, repeat the run with a larger set and judge before drawing conclusions.
+
+**Reproduce:** `python -m evaluation.run_benchmark --technique reranking_rag --framework langchain --docs <dir> -n 6`
 
 ---
 

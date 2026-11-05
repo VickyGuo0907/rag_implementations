@@ -56,6 +56,21 @@ def _infer_embedding_dimension(embeddings) -> int:
         return int(ConfigLoader.get().embeddings.get("dimension", 768))
 
 
+def _reset_chroma_collection(coll: str, persist_dir: str, embeddings) -> None:
+    """
+    Drop any existing Chroma collection so indexing replaces data instead of appending.
+
+    Chroma persists to disk, so without this every run (CLI or UI "Initialize") adds a
+    second copy of each chunk. Duplicates crowd the top-k and degrade retrieval.
+    """
+    from langchain_chroma import Chroma
+    Chroma(
+        collection_name=coll,
+        embedding_function=embeddings,
+        persist_directory=persist_dir,
+    ).delete_collection()
+
+
 def get_langchain_vector_store(
     collection_name: str | None = None,
     provider: str | None = None,
@@ -86,6 +101,7 @@ def get_langchain_vector_store(
         from langchain_chroma import Chroma
         persist_dir = vs_cfg.get("persist_directory", "./data/vector_store")
         Path(persist_dir).mkdir(parents=True, exist_ok=True)
+        _reset_chroma_collection(coll, persist_dir, embeddings)
         return Chroma(
             collection_name=coll,
             embedding_function=embeddings,
@@ -154,6 +170,7 @@ def build_langchain_vector_store(
         from langchain_chroma import Chroma
         persist_dir = vs_cfg.get("persist_directory", "./data/vector_store")
         Path(persist_dir).mkdir(parents=True, exist_ok=True)
+        _reset_chroma_collection(coll, persist_dir, embeddings)
         return Chroma.from_documents(
             documents=documents,
             embedding=embeddings,

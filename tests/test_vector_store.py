@@ -9,8 +9,13 @@ against a temp directory.
 import numpy as np
 import pytest
 
+from core.config_loader import ConfigLoader
 from core.document_loader import load_texts
-from core.vector_store import _resolve, build_langchain_vector_store
+from core.vector_store import (
+    _resolve,
+    build_langchain_vector_store,
+    get_langchain_vector_store,
+)
 
 
 class FakeEmbeddings:
@@ -84,3 +89,34 @@ def test_build_langchain_vector_store_unknown_provider(sample_chunks, fake_embed
             provider="mystery",
             embeddings=fake_embeddings,
         )
+
+
+def _use_temp_store(tmp_path):
+    """Point the Chroma persist directory at a throwaway dir."""
+    ConfigLoader.get()._config["vector_store"]["persist_directory"] = str(tmp_path)
+
+
+def test_build_chroma_replaces_instead_of_appending_on_reindex(
+    sample_chunks, fake_embeddings, tmp_path
+):
+    """Indexing the same chunks twice must not duplicate them in the persistent store."""
+    _use_temp_store(tmp_path)
+    for _ in range(2):
+        store = build_langchain_vector_store(
+            sample_chunks, collection_name="reindex", provider="chroma", embeddings=fake_embeddings
+        )
+    assert store._collection.count() == len(sample_chunks)
+
+
+def test_get_chroma_returns_empty_store_even_if_collection_exists(
+    sample_chunks, fake_embeddings, tmp_path
+):
+    """get_langchain_vector_store is documented as empty; stale data from a prior run must go."""
+    _use_temp_store(tmp_path)
+    build_langchain_vector_store(
+        sample_chunks, collection_name="stale", provider="chroma", embeddings=fake_embeddings
+    )
+    store = get_langchain_vector_store(
+        collection_name="stale", provider="chroma", embeddings=fake_embeddings
+    )
+    assert store._collection.count() == 0

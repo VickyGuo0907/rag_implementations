@@ -172,22 +172,24 @@ What is your primary requirement?
 
 ## Benchmark results
 
-Measured with RAGAS on a small, hand-written set. Treat it as a worked example of the method, not a leaderboard: 6 questions, one run per technique, and a small local judge model, so differences of a few points are noise.
+Measured with RAGAS on a small, hand-written set. Treat it as a worked example of the method, not a leaderboard: 6 questions, one run per technique, and a small local judge model. The same technique moved by up to ~0.15 between runs here, so differences of that size are noise.
 
-**Methodology** — Dataset: `data/eval/test_questions.json` (first 6 of 10 Q/A pairs, 3 from the RAG overview and 3 from the Burlington FAQ, with reference answers) · Corpus: `ai_and_rag_overview.txt` + `burlington_faq.md` · Generation and judge: `qwen/qwen3-4b-2507` (LMStudio, local) · Embeddings: `all-MiniLM-L6-v2` · Framework: LangChain · Fresh vector store per run · Metrics: RAGAS faithfulness, answer relevancy, context precision, context recall.
+**Methodology** — Dataset: `data/eval/test_questions.json` (first 6 of 10 Q/A pairs, 3 from the RAG overview and 3 from the Burlington FAQ, with reference answers) · Corpus: `ai_and_rag_overview.txt` + `burlington_faq.md` · Generation and judge: `qwen/qwen3-4b-2507` (LMStudio, local) · Embeddings: `all-MiniLM-L6-v2` · Retrieval: top_k=8, chunk=512 characters / overlap=50 · Framework: LangChain · Fresh vector store per run · Metrics: RAGAS faithfulness, answer relevancy, context precision, context recall.
 
 | # | Technique | Faithful. | Ans. Rel. | Ctx Prec. | Ctx Recall | Notes |
 |---|---|:-:|:-:|:-:|:-:|---|
-| 01 | Naive (baseline) | 0.83 | 0.59 | 0.74 | 1.00 | baseline |
-| 02 | Advanced | 1.00 | 0.76 | **0.92** | 1.00 | best context precision |
-| 07 | Reranking | 1.00 | **0.89** | 0.86 | 1.00 | best answer relevancy |
-| 03 | HyDE | 1.00 | 0.70 | 0.85 | 0.83 | |
-| 09 | Corrective (CRAG) | 1.00 | 0.68 | 0.83 | 0.67 | lowest context recall |
+| 01 | Naive (baseline) | 1.00 | 0.79 | 0.57 | 1.00 | baseline |
+| 02 | Advanced | 0.97 | 0.88 | 0.68 | 1.00 | |
+| 07 | Reranking | 1.00 | 0.89 | 0.71 | 1.00 | |
+| 03 | HyDE | 0.83 | **0.90** | 0.54 | 0.83 | lowest faithfulness and precision |
+| 09 | Corrective (CRAG) | 1.00 | 0.76 | **0.83** | 1.00 | best context precision |
 | 11 | GraphRAG | — | — | — | — | not run (one LLM call per chunk is slow locally) |
 
 Latency is not reported: the evaluation time includes the judge model's calls, so it says nothing about query speed.
 
-**Findings:** Every technique beat the naive baseline on faithfulness, answer relevancy and context precision, with Reranking giving the best answers (0.59 to 0.89 answer relevancy) and Advanced RAG the cleanest context (0.74 to 0.92 precision). HyDE and CRAG retrieved *less* of the needed information than the baseline (recall 0.83 and 0.67 against 1.00), which is plausible on a tiny, clean corpus where the extra rewriting steps have little to fix. With 6 questions and a 4B judge, repeat the run with a larger set and judge before drawing conclusions.
+**Effect of `top_k`:** an earlier run at top_k=5 had Naive at 0.83 faithfulness / 0.59 answer relevancy / 0.74 precision, and CRAG at only 0.67 context recall. At top_k=8 Naive's answer relevancy rose to 0.79 and CRAG's recall to 1.00, but context precision fell for most techniques (Naive 0.74 to 0.57) because more of the retrieved chunks are irrelevant. This is the recall-versus-precision trade-off; a question whose answer was split across two chunks (the four RAG components) only worked at the higher value.
+
+**Findings:** At top_k=8 every technique reached full context recall except HyDE (0.83), so the differences are mostly in precision and answer quality. CRAG filtered retrieved text best (precision 0.83 against 0.57 for Naive), while HyDE gave the highest answer relevancy (0.90) but the lowest faithfulness and precision, plausibly because its hypothetical documents pull in loosely related chunks. Reranking matched the best answer relevancy without hurting faithfulness. With 6 questions, one run each, and a 4B judge, repeat on a larger set and a stronger judge before drawing conclusions.
 
 **Reproduce:** `python -m evaluation.run_benchmark --technique reranking_rag --framework langchain --docs <dir> -n 6`
 

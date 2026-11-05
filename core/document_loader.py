@@ -54,8 +54,14 @@ def load_documents(source: str, glob: str = "**/*.*") -> list[Any]:
 
     Returns:
         List of LangChain Document objects.
+
+    Raises:
+        FileNotFoundError: If `source` is neither an existing path nor a URL.
     """
     source_path = Path(source)
+
+    if not source.startswith("http") and not source_path.exists():
+        raise FileNotFoundError(f"Document source not found: {source}")
 
     if source_path.is_dir():
         from langchain_community.document_loaders import DirectoryLoader

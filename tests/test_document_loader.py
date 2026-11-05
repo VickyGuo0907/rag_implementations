@@ -34,8 +34,8 @@ def test_load_texts_no_shared_metadata_with_override():
 
 
 def test_load_documents_missing_path_raises():
-    """A non-existent path raises a clear error rather than returning silently."""
-    with pytest.raises(RuntimeError):
+    """A non-existent path raises a clear error naming it, not a generic loader error."""
+    with pytest.raises(FileNotFoundError, match="Document source not found"):
         load_documents("/nonexistent/path/xyz")
 
 
@@ -53,3 +53,4 @@ def test_load_documents_directory_skips_image_assets(tmp_path):
     docs = load_documents(str(tmp_path))
     assert len(docs) == 1
     assert docs[0].metadata["source"].endswith("report.md")
+

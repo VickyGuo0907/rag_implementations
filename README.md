@@ -241,4 +241,5 @@ Common issues:
 
 - [RAG — Lewis et al. 2020](https://arxiv.org/abs/2005.11401) · [HyDE](https://arxiv.org/abs/2212.10496) · [RAPTOR](https://arxiv.org/abs/2401.18059) · [Self-RAG](https://arxiv.org/abs/2310.11511) · [CRAG](https://arxiv.org/abs/2401.15884)
 - [NirDiamant/RAG_Techniques](https://github.com/NirDiamant/RAG_Techniques) (technique catalog this repo adapts) · [LangChain RAG from Scratch](https://github.com/langchain-ai/rag-from-scratch)
+  - Companion tutorial for the ideas here: its multi-query and RAG-Fusion notebooks ↔ `04_query_transform_rag` / `05_fusion_rag`; HyDE ↔ `03_hyde_rag`; multi-representation indexing ↔ `06_parent_document_rag`; RAPTOR ↔ `12_raptor_rag`; routing ↔ `10_adaptive_rag`.
 - [RAGAS](https://docs.ragas.io) · [LMStudio](https://lmstudio.ai) · [LangChain](https://python.langchain.com) · [LlamaIndex](https://docs.llamaindex.ai)
